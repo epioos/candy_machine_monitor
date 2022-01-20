@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import random
 import time
 
 import requests
@@ -14,6 +15,15 @@ class FileHandler:
         self.collection_data_folder_path = os.path.join(self.file_path, "collection_data")
         self.collection_info_folder_path = os.path.join(self.file_path, "collection_info")
         self.create_folders()
+
+    def get_proxies(self):
+        file_name = "proxies.txt"
+        file_path = os.path.join(self.file_path, file_name)
+        if not os.path.isfile(file_path):
+            print("proxies file not found")
+            return []
+        with open(file_path, "r") as file:
+            return file.read().splitlines()
 
     def create_folders(self):
         if not os.path.exists(self.launchpad_folder_path):
@@ -90,6 +100,22 @@ class MagicEden:
 
         self.file_handler = FileHandler()
 
+        self.proxy_list = self.file_handler.get_proxies()
+        self.proxy = None
+        self.rotate_proxy()
+
+    def rotate_proxy(self):
+        try:
+            proxy = random.choice(self.proxy_list).split(":")
+            proxy_dict = {
+                "http": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}",
+                "https": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
+            }
+        except IndexError:
+            proxy_dict = None
+        print(f"Using proxy: {proxy_dict}")
+        self.proxy = proxy_dict
+
     def get_launchpad_releases(self):
         """
         Returns a list of all launchpad releases
@@ -107,7 +133,9 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.upcoming_launches_url,
-            headers=headers
+            headers=headers,
+            proxies=self.proxy,
+            timeout=30,
         )
         if response.status_code == 200:
             return response.json()
@@ -127,7 +155,9 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.launchpad_collections_url,
-            headers=headers
+            headers=headers,
+            proxies=self.proxy,
+            timeout=30,
         )
         if response.status_code == 200:
             return response.json()
@@ -147,7 +177,9 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.collection_info_url + slug,
-            headers=headers
+            headers=headers,
+            proxies=self.proxy,
+            timeout=30,
         )
         if response.status_code == 200:
             return response.json()
@@ -167,8 +199,11 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.collection_data_url + slug,
-            headers=headers
+            headers=headers,
+            proxies=self.proxy,
+            timeout=30,
         )
+        # print(response.status_code, response.text)
         if response.status_code == 200:
             return response.json()
         else:
@@ -187,7 +222,9 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.all_collections_data_url,
-            headers=headers
+            headers=headers,
+            proxies=self.proxy,
+            timeout=30,
         )
         if response.status_code == 200:
             return response.json()
@@ -203,6 +240,7 @@ class MagicEden:
         launchpad_collections = self.get_launchpad_collections()
         if launchpad_collections is None:
             print("fetching launchpad collections failed")
+            self.rotate_proxy()
             return
         print(datetime.datetime.now(), "launchpad_collections", len(launchpad_collections))  # , launchpad_collections)
         for collection in launchpad_collections:
@@ -242,6 +280,7 @@ class MagicEden:
         launchpad_releases = self.get_launchpad_releases()
         if launchpad_releases is None:
             print("fetching launchpad releases failed")
+            self.rotate_proxy()
             return
         print(datetime.datetime.now(), "launchpad_releases", len(launchpad_releases))  # , launchpad_releases)
         for lp_release in launchpad_releases:
@@ -277,13 +316,15 @@ class MagicEden:
                 )
 
     def check_collection_by_slug(self, slug):
-        print("check_collection_by_slug", slug)
+        print(datetime.datetime.now(), "check_collection_by_slug", slug)
         collection_info = self.file_handler.get_collection_info_from_file(slug)
         if collection_info is None:
             collection_info = self.get_collection_info(slug)
             self.file_handler.save_collection_info_to_file(slug, collection_info)
         collection_data = self.get_collection_data(slug)
         if collection_data is None:
+            print("failed getting collection data by slug", slug)
+            self.rotate_proxy()
             return
         old_collection_data = self.file_handler.get_collection_data_from_file(slug)
 
@@ -303,15 +344,14 @@ class MagicEden:
             fields = {
                 "floorPrice": floor_price,
                 "listedCount": listedCount,
-                "listedTotalValue": listedTotalValue,
+                # "listedTotalValue": listedTotalValue,
                 "avgPrice24hr": avgPrice24hr,
                 "volume24hr": volume24hr,
-                "volumeAll": volumeAll,
+                # "volumeAll": volumeAll,
             }
 
             for key, value in fields.items():
                 stats_str += f'{key}: {value}\n'
-
 
             self.send_webhook(
                 event=collection_info.get("name", "name not found"),
@@ -343,10 +383,10 @@ class MagicEden:
             fields = {
                 "floorPrice": f'{old_floor_price} -> {floor_price} SOL' if floor_price != old_floor_price else f'{floor_price} SOL',
                 "listedCount": f'{old_listedCount} -> {listedCount} items' if listedCount != old_listedCount else f'{listedCount} items',
-                "listedTotalValue": f'{old_listedTotalValue} -> {listedTotalValue} SOL' if listedTotalValue != old_listedTotalValue else f'{listedTotalValue} SOL',
+                # "listedTotalValue": f'{old_listedTotalValue} -> {listedTotalValue} SOL' if listedTotalValue != old_listedTotalValue else f'{listedTotalValue} SOL',
                 "avgPrice24hr": f'{old_avgPrice24hr} -> {avgPrice24hr} SOL' if avgPrice24hr != old_avgPrice24hr else f'{avgPrice24hr} SOL',
                 "volume24hr": f'{old_volume24hr} -> {volume24hr} SOL' if volume24hr != old_volume24hr else f'{volume24hr} SOL',
-                "volumeAll": f'{old_volumeAll} -> {volumeAll} SOL' if volumeAll != old_volumeAll else f'{volumeAll} SOL',
+                # "volumeAll": f'{old_volumeAll} -> {volumeAll} SOL' if volumeAll != old_volumeAll else f'{volumeAll} SOL',
             }
             for key, value in fields.items():
                 stats_str += f'{key}: {value}\n'
@@ -445,6 +485,7 @@ def main():
         m.check_launchpad_collections()
         for collection_slug in collections_to_monitor:
             m.check_collection_by_slug(collection_slug)
+            time.sleep(5)
         # time.sleep(60)
 
 
