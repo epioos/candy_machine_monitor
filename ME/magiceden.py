@@ -294,7 +294,6 @@ class MagicEden:
             return
         print(datetime.datetime.now(), "launchpad_releases", len(launchpad_releases))  # , launchpad_releases)
         for lp_release in launchpad_releases:
-            # print("lp_release", lp_release)
             old_release = self.file_handler.get_launchpad_release_from_file(lp_release['_id'])
             if old_release is None:
                 print("new release found", lp_release['_id'])
@@ -355,23 +354,15 @@ class MagicEden:
             self.file_handler.save_collection_data_to_file(slug, collection_data)
             floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
             listedCount = collection_data["listedCount"]
-            listedTotalValue = float(collection_data["listedTotalValue"] / 1000000000).__round__(2)
             avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
             volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
-            volumeAll = float(collection_data["volumeAll"] / 1000000000).__round__(2)
 
-            stats_str = ""
             fields = {
-                "floorPrice": f"{floor_price} SOL",
-                "listedCount": f"{listedCount} items",
-                # "listedTotalValue": listedTotalValue,
-                "avgPrice24hr": f"{avgPrice24hr} SOL",
-                "volume24hr": f"{volume24hr} SOL",
-                # "volumeAll": volumeAll,
+                "Floor Price": f"{floor_price} SOL",
+                "Listed Count": f"{listedCount} items",
+                "Avg Price 24 Hours": f"{avgPrice24hr} SOL",
+                "Volume 24 Hours": f"{volume24hr} SOL",
             }
-
-            for key, value in fields.items():
-                stats_str += f'{key}: {value}\n'
             self.send_webhook(
                 event=collection_info.get("name", "name not found"),
                 text=collection_info.get("description", "description not found"),
@@ -379,7 +370,6 @@ class MagicEden:
                 url=f'https://magiceden.io/marketplace/{collection_info.get("symbol", None)}',
                 image=collection_info.get("image", None),
                 target_webhook=self.collection_monitor_webhook_url,
-                # fields={"Stats": stats_str},
                 fields=fields,
             )
         elif old_collection_data["floorPrice"] != collection_data["floorPrice"]:
@@ -387,28 +377,42 @@ class MagicEden:
             self.file_handler.save_collection_data_to_file(slug, collection_data)
             floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
             listedCount = collection_data["listedCount"]
-            listedTotalValue = float(collection_data["listedTotalValue"] / 1000000000).__round__(2)
             avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
             volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
-            volumeAll = float(collection_data["volumeAll"] / 1000000000).__round__(2)
 
             old_floor_price = float(old_collection_data["floorPrice"] / 1000000000).__round__(2)
             old_listedCount = old_collection_data["listedCount"]
-            old_listedTotalValue = float(old_collection_data["listedTotalValue"] / 1000000000).__round__(2)
             old_avgPrice24hr = float(old_collection_data["avgPrice24hr"] / 1000000000).__round__(2)
             old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2)
-            old_volumeAll = float(old_collection_data["volumeAll"] / 1000000000).__round__(2)
-            stats_str = ""
+
+            floor_change_positive = "+" if floor_price > old_floor_price else ""
+            floor_change_in_percentage = float((floor_price - old_floor_price) / old_floor_price * 100).__round__(2)
+            listed_count_change_positive = "+" if listedCount > old_listedCount else ""
+            listed_count_change_in_percentage = float(
+                (listedCount - old_listedCount) / old_listedCount * 100).__round__(2)
+            avg_price_24hr_change_positive = "+" if avgPrice24hr > old_avgPrice24hr else ""
+            avg_price_24hr_change_in_percentage = float(
+                (avgPrice24hr - old_avgPrice24hr) / old_avgPrice24hr * 100
+            ).__round__(2)
+            volume_24hr_change_positive = "+" if volume24hr > old_volume24hr else ""
+            volume_24hr_change_in_percentage = float(
+                (volume24hr - old_volume24hr) / old_volume24hr * 100
+            ).__round__(2)
+
             fields = {
-                "floorPrice": f'{old_floor_price} -> {floor_price} SOL' if floor_price != old_floor_price else f'{floor_price} SOL',
-                "listedCount": f'{old_listedCount} -> {listedCount} items' if listedCount != old_listedCount else f'{listedCount} items',
-                # "listedTotalValue": f'{old_listedTotalValue} -> {listedTotalValue} SOL' if listedTotalValue != old_listedTotalValue else f'{listedTotalValue} SOL',
-                "avgPrice24hr": f'{old_avgPrice24hr} -> {avgPrice24hr} SOL' if avgPrice24hr != old_avgPrice24hr else f'{avgPrice24hr} SOL',
-                "volume24hr": f'{old_volume24hr} -> {volume24hr} SOL' if volume24hr != old_volume24hr else f'{volume24hr} SOL',
-                # "volumeAll": f'{old_volumeAll} -> {volumeAll} SOL' if volumeAll != old_volumeAll else f'{volumeAll} SOL',
+                "Floor Price": f'{old_floor_price} -> {floor_price} SOL '
+                               f'({floor_change_positive}{floor_change_in_percentage}%)'
+                if floor_price != old_floor_price else f'{floor_price} SOL',
+                "Listed Count": f'{old_listedCount} -> {listedCount} items '
+                                f'({listed_count_change_positive}{listed_count_change_in_percentage}%)'
+                if listedCount != old_listedCount else f'{listedCount} items',
+                "Avg Price 24 Hours": f'{old_avgPrice24hr} -> {avgPrice24hr} SOL '
+                                      f'({avg_price_24hr_change_positive}{avg_price_24hr_change_in_percentage}%)'
+                if avgPrice24hr != old_avgPrice24hr else f'{avgPrice24hr} SOL',
+                "Volume 24 Hours": f'{old_volume24hr} -> {volume24hr} SOL '
+                                   f'({volume_24hr_change_positive}{volume_24hr_change_in_percentage}%)'
+                if volume24hr != old_volume24hr else f'{volume24hr} SOL',
             }
-            for key, value in fields.items():
-                stats_str += f'{key}: {value}\n'
 
             self.send_webhook(
                 event=collection_info.get("name", "name not found"),
@@ -417,12 +421,10 @@ class MagicEden:
                 url=f'https://magiceden.io/marketplace/{collection_info.get("symbol", None)}',
                 image=collection_info.get("image", None),
                 target_webhook=self.collection_monitor_webhook_url,
-                # fields={"Stats": stats_str}
                 fields=fields,
             )
 
     def send_webhook(self, event, text, author, url, image, target_webhook, fields):
-        # print("send_webhook", event, text, target_webhook)
         time_now = datetime.datetime.now()
         data = {
             "content": None,
@@ -499,17 +501,13 @@ def main():
         "quantum_traders",
         "pawnshop_gnomies",
         "bull_empire",
-        "teddy_bears_club"
+        # "teddy_bears_club",
     ]
-    # collection not found 61e8eba8c07f3dc2541008f8
-    # KeyError: 'mint'
     while 1:
         m.check_launchpad_releases()
         m.check_launchpad_collections()
         for collection_slug in collections_to_monitor:
             m.check_collection_by_slug(collection_slug)
-            # time.sleep(5)
-        # time.sleep(60)
 
 
 if __name__ == "__main__":
