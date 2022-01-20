@@ -11,6 +11,8 @@ class FileHandler:
         self.file_path = os.getcwd()
         self.launchpad_folder_path = os.path.join(self.file_path, "launchpad")
         self.collections_folder_path = os.path.join(self.file_path, "collections")
+        self.collection_data_folder_path = os.path.join(self.file_path, "collection_data")
+        self.collection_info_folder_path = os.path.join(self.file_path, "collection_info")
         self.create_folders()
 
     def create_folders(self):
@@ -18,6 +20,10 @@ class FileHandler:
             os.makedirs(self.launchpad_folder_path)
         if not os.path.exists(self.collections_folder_path):
             os.makedirs(self.collections_folder_path)
+        if not os.path.exists(self.collection_data_folder_path):
+            os.makedirs(self.collection_data_folder_path)
+        if not os.path.exists(self.collection_info_folder_path):
+            os.makedirs(self.collection_info_folder_path)
 
     def save_collection_to_file(self, collection_id, collection_data):
         collection_file_path = os.path.join(self.collections_folder_path, collection_id + ".json")
@@ -43,15 +49,42 @@ class FileHandler:
         with open(release_file_path, "r") as release_file:
             return json.loads(release_file.read())
 
+    def save_collection_data_to_file(self, slug, collection_data):
+        collection_file_path = os.path.join(self.collection_data_folder_path, slug + ".json")
+        with open(collection_file_path, "w") as collection_file:
+            collection_file.write(json.dumps(collection_data, indent=4))
+
+    def get_collection_data_from_file(self, slug):
+        collection_file_path = os.path.join(self.collection_data_folder_path, slug + ".json")
+        if not os.path.isfile(collection_file_path):
+            return None
+        with open(collection_file_path, "r") as collection_file:
+            return json.loads(collection_file.read())
+
+    def save_collection_info_to_file(self, slug, collection_data):
+        collection_info_file_path = os.path.join(self.collection_info_folder_path, slug + ".json")
+        with open(collection_info_file_path, "w") as collection_info_file:
+            collection_info_file.write(json.dumps(collection_data, indent=4))
+
+    def get_collection_info_from_file(self, slug):
+        collection_info_file_path = os.path.join(self.collection_info_folder_path, slug + ".json")
+        if not os.path.isfile(collection_info_file_path):
+            return None
+        with open(collection_info_file_path, "r") as collection_info_file:
+            return json.loads(collection_info_file.read())
+
 
 class MagicEden:
     def __init__(self):
         self.upcoming_launches_url = "https://api-mainnet.magiceden.io/upcoming_launches"
         self.launchpad_collections_url = "https://api-mainnet.magiceden.io/launchpad_collections"
         self.all_collections_data_url = "https://api-mainnet.magiceden.io/all_collections_with_escrow_data"
+        self.collection_info_url = "https://api-mainnet.magiceden.io/collections/"
+        self.collection_data_url = "https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/"
 
         self.launchpad_releases_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
         self.launchpad_collections_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
+        self.collection_monitor_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
 
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 
@@ -94,6 +127,46 @@ class MagicEden:
         response = requests.request(
             method="GET",
             url=self.launchpad_collections_url,
+            headers=headers
+        )
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    def get_collection_info(self, slug):
+        headers = {
+            'authority': 'api-mainnet.magiceden.io',
+            'cache-control': 'max-age=0',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            'accept': 'application/json',
+            'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
+        }
+
+        response = requests.request(
+            method="GET",
+            url=self.collection_info_url + slug,
+            headers=headers
+        )
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    def get_collection_data(self, slug):
+        headers = {
+            'authority': 'api-mainnet.magiceden.io',
+            'cache-control': 'max-age=0',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            'accept': 'application/json',
+            'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
+        }
+
+        response = requests.request(
+            method="GET",
+            url=self.collection_data_url + slug,
             headers=headers
         )
         if response.status_code == 200:
@@ -203,6 +276,92 @@ class MagicEden:
                     },
                 )
 
+    def check_collection_by_slug(self, slug):
+        print("check_collection_by_slug", slug)
+        collection_info = self.file_handler.get_collection_info_from_file(slug)
+        if collection_info is None:
+            collection_info = self.get_collection_info(slug)
+            self.file_handler.save_collection_info_to_file(slug, collection_info)
+        collection_data = self.get_collection_data(slug)
+        if collection_data is None:
+            return
+        old_collection_data = self.file_handler.get_collection_data_from_file(slug)
+
+        collection_data = collection_data["results"]
+
+        if old_collection_data is None:
+            print("new collection found", slug)
+            self.file_handler.save_collection_data_to_file(slug, collection_data)
+            floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
+            listedCount = collection_data["listedCount"]
+            listedTotalValue = float(collection_data["listedTotalValue"] / 1000000000).__round__(2)
+            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
+            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+            volumeAll = float(collection_data["volumeAll"] / 1000000000).__round__(2)
+
+            stats_str = ""
+            fields = {
+                "floorPrice": floor_price,
+                "listedCount": listedCount,
+                "listedTotalValue": listedTotalValue,
+                "avgPrice24hr": avgPrice24hr,
+                "volume24hr": volume24hr,
+                "volumeAll": volumeAll,
+            }
+
+            for key, value in fields.items():
+                stats_str += f'{key}: {value}\n'
+
+
+            self.send_webhook(
+                event=collection_info.get("name", "name not found"),
+                text=collection_info.get("description", "description not found"),
+                author="Collection Data found",
+                url=f'https://magiceden.io/marketplace/{collection_info.get("symbol", None)}',
+                image=collection_info.get("image", None),
+                target_webhook=self.collection_monitor_webhook_url,
+                # fields={"Stats": stats_str},
+                fields=fields,
+            )
+        elif old_collection_data["floorPrice"] != collection_data["floorPrice"]:
+            print("collection changed", slug)
+            self.file_handler.save_collection_data_to_file(slug, collection_data)
+            floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
+            listedCount = collection_data["listedCount"]
+            listedTotalValue = float(collection_data["listedTotalValue"] / 1000000000).__round__(2)
+            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
+            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+            volumeAll = float(collection_data["volumeAll"] / 1000000000).__round__(2)
+
+            old_floor_price = float(old_collection_data["floorPrice"] / 1000000000).__round__(2)
+            old_listedCount = old_collection_data["listedCount"]
+            old_listedTotalValue = float(old_collection_data["listedTotalValue"] / 1000000000).__round__(2)
+            old_avgPrice24hr = float(old_collection_data["avgPrice24hr"] / 1000000000).__round__(2)
+            old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2)
+            old_volumeAll = float(old_collection_data["volumeAll"] / 1000000000).__round__(2)
+            stats_str = ""
+            fields = {
+                "floorPrice": f'{old_floor_price} -> {floor_price} SOL' if floor_price != old_floor_price else f'{floor_price} SOL',
+                "listedCount": f'{old_listedCount} -> {listedCount} items' if listedCount != old_listedCount else f'{listedCount} items',
+                "listedTotalValue": f'{old_listedTotalValue} -> {listedTotalValue} SOL' if listedTotalValue != old_listedTotalValue else f'{listedTotalValue} SOL',
+                "avgPrice24hr": f'{old_avgPrice24hr} -> {avgPrice24hr} SOL' if avgPrice24hr != old_avgPrice24hr else f'{avgPrice24hr} SOL',
+                "volume24hr": f'{old_volume24hr} -> {volume24hr} SOL' if volume24hr != old_volume24hr else f'{volume24hr} SOL',
+                "volumeAll": f'{old_volumeAll} -> {volumeAll} SOL' if volumeAll != old_volumeAll else f'{volumeAll} SOL',
+            }
+            for key, value in fields.items():
+                stats_str += f'{key}: {value}\n'
+
+            self.send_webhook(
+                event=collection_info.get("name", "name not found"),
+                text=collection_info.get("description", "description not found"),
+                author="Floor Price changed",
+                url=f'https://magiceden.io/marketplace/{collection_info.get("symbol", None)}',
+                image=collection_info.get("image", None),
+                target_webhook=self.collection_monitor_webhook_url,
+                # fields={"Stats": stats_str}
+                fields=fields,
+            )
+
     def send_webhook(self, event, text, author, url, image, target_webhook, fields):
         print("send_webhook", event, text, target_webhook)
         time_now = datetime.datetime.now()
@@ -243,7 +402,7 @@ class MagicEden:
                 if fields[f] == "":
                     real_value = f"-"
                 else:
-                    real_value = f"`{fields[f]}`"
+                    real_value = f"{fields[f]}"
             elif type(fields[f]) == int:
                 real_value = f"`{fields[f]}`"
             elif type(fields[f]) == float:
@@ -275,11 +434,18 @@ class MagicEden:
 
 def main():
     m = MagicEden()
+    collections_to_monitor = [
+        "dazedducks_metagalactic_club",
+        "888_anon_club",
+        "quantum_traders",
+        "pawnshop_gnomies"
+    ]
     while 1:
         m.check_launchpad_releases()
         m.check_launchpad_collections()
-        time.sleep(6)
-    # launchpad_collections = m.get_launchpad_collections()
+        for collection_slug in collections_to_monitor:
+            m.check_collection_by_slug(collection_slug)
+        # time.sleep(60)
 
 
 if __name__ == "__main__":
