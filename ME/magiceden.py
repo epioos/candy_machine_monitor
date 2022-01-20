@@ -237,7 +237,12 @@ class MagicEden:
         :return:
         """
         # Get the launchpad collections
-        launchpad_collections = self.get_launchpad_collections()
+        try:
+            launchpad_collections = self.get_launchpad_collections()
+        except Exception as e:
+            print("error get_launchpad_collections:", e)
+            self.rotate_proxy()
+            return
         if launchpad_collections is None:
             print("fetching launchpad collections failed")
             self.rotate_proxy()
@@ -277,7 +282,12 @@ class MagicEden:
             # todo check if collection has changed
 
     def check_launchpad_releases(self):
-        launchpad_releases = self.get_launchpad_releases()
+        try:
+            launchpad_releases = self.get_launchpad_releases()
+        except Exception as e:
+            print("error get_launchpad_releases:", e)
+            self.rotate_proxy()
+            return
         if launchpad_releases is None:
             print("fetching launchpad releases failed")
             self.rotate_proxy()
@@ -319,9 +329,19 @@ class MagicEden:
         print(datetime.datetime.now(), "check_collection_by_slug", slug)
         collection_info = self.file_handler.get_collection_info_from_file(slug)
         if collection_info is None:
-            collection_info = self.get_collection_info(slug)
+            try:
+                collection_info = self.get_collection_info(slug)
+            except Exception as e:
+                print("error get_collection_info:", e)
+                self.rotate_proxy()
+                return
             self.file_handler.save_collection_info_to_file(slug, collection_info)
-        collection_data = self.get_collection_data(slug)
+        try:
+            collection_data = self.get_collection_data(slug)
+        except Exception as e:
+            print("error get_collection_data:", e)
+            self.rotate_proxy()
+            return
         if collection_data is None:
             print("failed getting collection data by slug", slug)
             self.rotate_proxy()
@@ -342,17 +362,16 @@ class MagicEden:
 
             stats_str = ""
             fields = {
-                "floorPrice": floor_price,
-                "listedCount": listedCount,
+                "floorPrice": f"{floor_price} SOL",
+                "listedCount": f"{listedCount} items",
                 # "listedTotalValue": listedTotalValue,
-                "avgPrice24hr": avgPrice24hr,
-                "volume24hr": volume24hr,
+                "avgPrice24hr": f"{avgPrice24hr} SOL",
+                "volume24hr": f"{volume24hr} SOL",
                 # "volumeAll": volumeAll,
             }
 
             for key, value in fields.items():
                 stats_str += f'{key}: {value}\n'
-
             self.send_webhook(
                 event=collection_info.get("name", "name not found"),
                 text=collection_info.get("description", "description not found"),
@@ -403,7 +422,7 @@ class MagicEden:
             )
 
     def send_webhook(self, event, text, author, url, image, target_webhook, fields):
-        print("send_webhook", event, text, target_webhook)
+        # print("send_webhook", event, text, target_webhook)
         time_now = datetime.datetime.now()
         data = {
             "content": None,
@@ -464,7 +483,7 @@ class MagicEden:
 
         response = requests.post(target_webhook, json=data)
         print(response.status_code, response.reason, response.elapsed.total_seconds(),
-              response.url, response.text)
+              response.url, response.text, event)
         if response.status_code == 429:
             print("429")
             retry_after = response.json()["retry_after"]
@@ -478,14 +497,18 @@ def main():
         "dazedducks_metagalactic_club",
         "888_anon_club",
         "quantum_traders",
-        "pawnshop_gnomies"
+        "pawnshop_gnomies",
+        "bull_empire",
+        "teddy_bears_club"
     ]
+    # collection not found 61e8eba8c07f3dc2541008f8
+    # KeyError: 'mint'
     while 1:
         m.check_launchpad_releases()
         m.check_launchpad_collections()
         for collection_slug in collections_to_monitor:
             m.check_collection_by_slug(collection_slug)
-            time.sleep(5)
+            # time.sleep(5)
         # time.sleep(60)
 
 
