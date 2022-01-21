@@ -10,7 +10,7 @@ from settings import discord_bot_token
 # intents = discord.Intents.default()
 # intents.members = True
 client = commands.Bot(command_prefix='!')  # , intents=intents)  # Bot Prefix
-# client.remove_command('help')
+client.remove_command('help')
 
 staff_roles = [
     913498058770227232,  # owner
@@ -25,6 +25,38 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(client))
 
 
+def get_help_help_embed():
+    help_embed = discord.Embed(
+        title='MetaMint Monitor',
+        description='Manage MetaMint Monitors',
+        color=0x00ff00
+    )
+    help_embed.add_field(
+        name='!binance',
+        value='Shows all commands for managing Binance Monitor',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!me',
+        value='Shows all commands for managing MagicEden Monitor',
+        inline=False
+    )
+    help_embed.set_footer(
+        text='MetaMint Monitors'
+    )
+    return help_embed
+
+
+@client.command(
+    name='help',
+    description='Help overview',
+    brief='Help overview',
+    aliases=['h', 'halp', 'commands']
+)
+async def help_command(ctx):
+    await ctx.send(embed=get_help_help_embed())
+
+
 def get_binance_help_embed():
     help_embed = discord.Embed(
         title='Binance Monitor',
@@ -32,22 +64,22 @@ def get_binance_help_embed():
         color=0x00ff00
     )
     help_embed.add_field(
-        name='!me add',
+        name='!binance add',
         value='Add a Collection from Monitor List',
         inline=False
     )
     help_embed.add_field(
-        name='!me remove',
+        name='!binance remove',
         value='Remove a Collection from Monitor List',
         inline=False
     )
     help_embed.add_field(
-        name='!me list',
+        name='!binance list',
         value='List Collections that are being monitored',
         inline=False
     )
     help_embed.add_field(
-        name='!me help',
+        name='!binance help',
         value='Help overview',
         inline=False
     )
@@ -115,8 +147,10 @@ async def magiceden_manage_monitor_command(ctx, *args):
     elif len(args) == 1:
         me_fh = MagicEdenFileHandler()
         if args[0] == 'add':
-            await ctx.send("Enter a slug to add to the monitor list.\n"
-                           "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club")
+            await ctx.send(
+                "Enter a slug to add to the monitor list.\n"
+                "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club"
+            )
             answer = await await_message(ctx)
             if answer is not None:
                 slug = answer.strip()
@@ -125,8 +159,10 @@ async def magiceden_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send("Enter a slug to remove it from the monitor list.\n"
-                           "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club")
+            await ctx.send(
+                "Enter a slug to remove it from the monitor list.\n"
+                "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club"
+            )
             answer = await await_message(ctx)
             if answer is not None:
                 slug = answer.strip()
@@ -159,8 +195,10 @@ async def binance_manage_monitor_command(ctx, *args):
     elif len(args) == 1:
         bn_fh = BinanceFileHandler()
         if args[0] == 'add':
-            await ctx.send("Enter a url to add a collection to the monitor list.\n"
-                           "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1")
+            await ctx.send(
+                "Enter a url to add a collection to the monitor list.\n"
+                "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1"
+            )
             answer = await await_message(ctx)
             if answer is not None:
                 binance_collection_url = answer.strip()
@@ -169,8 +207,10 @@ async def binance_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send("Enter a url to remove a collection to the monitor list.\n"
-                           "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1")
+            await ctx.send(
+                "Enter a url to remove a collection to the monitor list.\n"
+                "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1"
+            )
             answer = await await_message(ctx)
             if answer is not None:
                 binance_collection_url = answer.strip()
