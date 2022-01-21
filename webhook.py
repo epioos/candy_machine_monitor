@@ -2,7 +2,7 @@ from discord_webhook import DiscordWebhook, DiscordEmbed
 from settings import webhook_url
 
 
-def send_discord_webhook(address, version, metadata,nft_name, image, description):
+def send_discord_webhook(address, version, metadata, nft_name, image, description):
     webhook = DiscordWebhook(url=webhook_url)
     cm_timestamp = metadata.get("go_live_date", None)
     if cm_timestamp is not None:
@@ -23,7 +23,7 @@ def send_discord_webhook(address, version, metadata,nft_name, image, description
         cm_items_available_discord = "not found"
     cm_price = metadata.get("price", None)
     if cm_price is not None:
-        cm_price_discord = float(int(cm_price)/1000000000).__round__(2).__str__() + " SOL"
+        cm_price_discord = float(int(cm_price) / 1000000000).__round__(2).__str__() + " SOL"
     else:
         cm_price_discord = "not found"
     embed = DiscordEmbed(title="New candy machine found", color='03b2f8')

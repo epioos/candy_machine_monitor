@@ -6,6 +6,8 @@ import time
 
 import requests
 
+from magicden_filehandler import MagicEdenFileHandler
+
 
 class FileHandler:
     def __init__(self):
@@ -348,7 +350,7 @@ class MagicEden:
         old_collection_data = self.file_handler.get_collection_data_from_file(slug)
 
         collection_data = collection_data["results"]
-
+        collection_data["lastChange"] = int(time.time())
         if old_collection_data is None:
             print("new collection found", slug)
             self.file_handler.save_collection_data_to_file(slug, collection_data)
@@ -412,6 +414,7 @@ class MagicEden:
                 "Volume 24 Hours": f'{old_volume24hr} -> {volume24hr} SOL '
                                    f'({volume_24hr_change_positive}{volume_24hr_change_in_percentage}%)'
                 if volume24hr != old_volume24hr else f'{volume24hr} SOL',
+                "Last Floor Change": f"<t:{old_collection_data.get('lastChange', int(time.time()))}:R>",
             }
 
             self.send_webhook(
@@ -487,27 +490,20 @@ class MagicEden:
         print(response.status_code, response.reason, response.elapsed.total_seconds(),
               response.url, response.text, event)
         if response.status_code == 429:
-            print("429")
+            print("magiceden webhook rate limit 429")
             retry_after = response.json()["retry_after"]
             time.sleep((retry_after // 1000) + 1)
             self.send_webhook(event, text, author, url, image, target_webhook, fields)
 
 
 def main():
-    m = MagicEden()
-    collections_to_monitor = [
-        "dazedducks_metagalactic_club",
-        "888_anon_club",
-        "quantum_traders",
-        "pawnshop_gnomies",
-        "bull_empire",
-        # "teddy_bears_club",
-    ]
+    me_monitor = MagicEden()
+    me_fh = MagicEdenFileHandler()
     while 1:
-        m.check_launchpad_releases()
-        m.check_launchpad_collections()
-        for collection_slug in collections_to_monitor:
-            m.check_collection_by_slug(collection_slug)
+        me_monitor.check_launchpad_releases()
+        me_monitor.check_launchpad_collections()
+        for collection_slug in me_fh.read_file():
+            me_monitor.check_collection_by_slug(collection_slug)
 
 
 if __name__ == "__main__":

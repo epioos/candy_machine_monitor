@@ -4,7 +4,6 @@ from theblockchainapi import TheBlockchainAPIResource
 import time
 from settings import API_ID_KEY, API_SECRET_KEY
 
-
 BLOCKCHAIN_API_RESOURCE = TheBlockchainAPIResource(
     api_key_id=API_ID_KEY,
     api_secret_key=API_SECRET_KEY
@@ -26,6 +25,11 @@ def read_all_cm_from_file():
             return all_cm_from_file
     except Exception as e:
         print("Error - getting all cm from file", e)
+        return {
+            "config_addresses_v1": [],
+            "config_addresses_v2": [],
+            "config_addresses_magic-eden-v1": []
+        }
 
 
 def get_all_cm():
@@ -44,15 +48,16 @@ def get_all_cm():
     print(f"There are a total of {len(result['config_addresses_magic-eden-v1'])} Magic Eden candy machines.")
     return result
 
+
 def compare_for_new_cm(all_cm_new, all_cm_old):
     new_cm_list = []
     for new_cm_v1 in all_cm_new['config_addresses_v1']:
         if new_cm_v1 not in all_cm_old['config_addresses_v1']:
-            new_cm_list.append(tuple((new_cm_v1,"v1", "v1")))
-    for new_cm_v2 in all_cm_new ['config_addresses_v2']:
+            new_cm_list.append(tuple((new_cm_v1, "v1", "v1")))
+    for new_cm_v2 in all_cm_new['config_addresses_v2']:
         if new_cm_v2 not in all_cm_old['config_addresses_v2']:
-            new_cm_list.append(tuple((new_cm_v2,"v2", "v2")))
-    for new_cm_me in all_cm_new ['config_addresses_magic-eden-v1']:
+            new_cm_list.append(tuple((new_cm_v2, "v2", "v2")))
+    for new_cm_me in all_cm_new['config_addresses_magic-eden-v1']:
         if new_cm_me not in all_cm_old['config_addresses_magic-eden-v1']:
-            new_cm_list.append(tuple((new_cm_me,"magic eden", "v1")))
+            new_cm_list.append(tuple((new_cm_me, "magic eden", "v1")))
     return new_cm_list

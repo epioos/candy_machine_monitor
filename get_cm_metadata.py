@@ -39,6 +39,7 @@ def get_metadata_of_cm(cm_address, version):
             return None
         return metadata
 
+
 def save_metadata_to_file(metadata):
     try:
         os.mkdir("./metadata/")
@@ -49,4 +50,3 @@ def save_metadata_to_file(metadata):
             json.dump(metadata, file)
     except Exception as e:
         print("error saving metadata to file", e)
-

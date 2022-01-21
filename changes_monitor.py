@@ -1,11 +1,12 @@
 import json
 import os.path
+import time
 
 from webhook_monitor import send_minted_counter, send_new_unmited_nfts
 
 from cm_change_files import read_from_file
 
-from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork, SolanaCandyMachineContractVersion
+from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork
 from settings import API_ID_KEY, API_SECRET_KEY
 
 BLOCKCHAIN_API_RESOURCE = TheBlockchainAPIResource(
@@ -111,4 +112,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while 1:
+        main()
+        # time.sleep(15)

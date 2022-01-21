@@ -1,7 +1,9 @@
+import datetime
 import json
 import os
 import time
 
+import discord
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from settings import webhook_url
@@ -38,21 +40,33 @@ def check_if_pid_exists(product_id):
 
 
 def send_webhook(collection):
+    print("collection", collection)
     start_time = int(collection['startTime']/1000)
     end_time = int(collection['endTime']/1000)
-    webhook = DiscordWebhook(url=webhook_url)
-    embed = DiscordEmbed(title='New Project found')
-    embed.set_image(url=collection["image"])
-    embed.add_embed_field(name='sale starts', value=f"<t:{start_time}:R>", inline=False)
-    embed.add_embed_field(name='sale ends', value=f"<t:{end_time}:R>", inline=False)
-    embed.add_embed_field(name='name', value=collection["name"], inline=False)
-    embed.add_embed_field(name='product id', value=collection["productId"], inline=False)
+    webhook = DiscordWebhook(
+        url=webhook_url,
+        name="Binance Marketplace",
+        avatar_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png",
+    )
+    embed = DiscordEmbed(
+        title=collection.get("name"),
+        url=f"https://www.binance.com/en/nft/mystery-box/detail?number=1&productId={collection['productId']}",
+        color=0xFCD535,
+    )
+    embed.set_author(
+        name="New Mystery Box Found",
+        icon_url="https://i.imgur.com/rgexpCw.png"
+    )
+    embed.set_image(url=collection.get("image"))
     embed.add_embed_field(name='price', value=f"{collection['price']} BUSD", inline=False)
-    embed.add_embed_field(name='link',
-                          value=f"https://www.binance.com/en/nft/mystery-box/detail?number=1&productId={collection['productId']}")
-
+    embed.add_embed_field(name='sale starts', value=f"<t:{start_time}:R> / <t:{start_time}:F>", inline=False)
+    embed.add_embed_field(name='sale ends', value=f"<t:{end_time}:R> / <t:{end_time}:F>", inline=False)
+    embed.set_footer(
+        text="MetaMint",
+        icon_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
+    )
+    embed.set_timestamp()
     webhook.add_embed(embed)
-
     response = webhook.execute()
 
 
