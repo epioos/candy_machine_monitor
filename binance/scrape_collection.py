@@ -18,6 +18,7 @@ def get_collection_data(product_id):
     except Exception as e:
         print("error getting response of binance header url", e)
 
+
 def get_pid_and_name_from_url(url):
     parsed_url = urlparse(url)
     try:
@@ -25,6 +26,7 @@ def get_pid_and_name_from_url(url):
         return parse_qs(parsed_url.query)["id"][0], collection_name
     except:
         return None, None
+
 
 def get_image_url(url):
     response = requests.get(url)
@@ -34,7 +36,6 @@ def get_image_url(url):
     if results:
         return results[0]
     return None
-
 
 
 def save_single_collection_to_file(collection, product_id):
@@ -68,16 +69,20 @@ def check_collection_changes(old_data, new_data):
     if collection_changed:
         floor_price = float(new_data["data"]["floorPrice"]["amount"]).__round__(2)
         up_or_down = new_data["data"]["floorPrice"]["up"]
+        floor_currency = new_data["data"]["floorPrice"]["currency"]
         changed_amount = float(new_data["data"]["floorPrice"]["changeAmount"]).__round__(2)
+        volume_currency = new_data["data"]["dailyTradePrice"]["currency"]
         volume = float(new_data["data"]["dailyTradePrice"]["amount"]).__round__(2)
         latest_price = float(new_data["data"]["lastTransaction"]["amount"]).__round__(2)
+        latest_price_currency = new_data["data"]["lastTransaction"]["currency"]
         items_number = new_data["data"]["totalAsset"]["itemCount"]
-        return floor_price, up_or_down, changed_amount, volume, latest_price, items_number
+        return floor_price, floor_currency, up_or_down, changed_amount, volume_currency, volume, latest_price, latest_price_currency, items_number
     else:
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None
 
 
-def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number, collection_name,
+def send_to_discord(floor_price, floor_currency, up_or_down, changed_amount, volume_currency, volume, latest_price,
+                    latest_price_currency, items_number, collection_name,
                     collection_id, image):
     if up_or_down:
         dc_changed_amount = f"+{changed_amount}%"
@@ -100,6 +105,12 @@ def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_pric
     )
     if floor_price is None:
         floor_price = "not found"
+    if floor_currency is None:
+        floor_currency = " "
+    if volume_currency is None:
+        volume_currency = " "
+    if latest_price_currency is None:
+        latest_price_currency = " "
     if volume is None:
         volume = "not found"
     if latest_price is None:
@@ -109,17 +120,17 @@ def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_pric
     # add fields to embed
     embed.add_embed_field(
         name='Floor Price',
-        value=f"{floor_price} BUSD ({dc_changed_amount})",
+        value=f"{floor_price} {floor_currency} ({dc_changed_amount})",
         inline=False
     )
     embed.add_embed_field(
         name='Total Volume',
-        value=f"{volume} BUSD",
+        value=f"{volume} {volume_currency}",
         inline=False
     )
     embed.add_embed_field(
         name='Last Sale Price',
-        value=f"{latest_price} BUSD",
+        value=f"{latest_price} {latest_price_currency}",
         inline=False
     )
     embed.add_embed_field(

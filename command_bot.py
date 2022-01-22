@@ -3,6 +3,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
+from binance.get_information_on_command import send_binance_information
 from binance_filehandler import BinanceFileHandler
 from cm_filehandler import CmFileHandler
 from magicden_filehandler import MagicEdenFileHandler
