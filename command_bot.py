@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from binance_filehandler import BinanceFileHandler
+from cm_filehandler import CmFileHandler
 from magicden_filehandler import MagicEdenFileHandler
 from settings import discord_bot_token
 
@@ -39,6 +40,11 @@ def get_help_help_embed():
     help_embed.add_field(
         name='!me',
         value='Shows all commands for managing MagicEden Monitor',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!cm',
+        value='Shows all commands for managing candy machine Monitor',
         inline=False
     )
     help_embed.set_footer(
@@ -117,6 +123,37 @@ def get_magiceden_help_embed():
     )
     help_embed.set_footer(
         text='MagicEden Monitor'
+    )
+    return help_embed
+
+def get_cm_help_embed():
+    help_embed = discord.Embed(
+        title='Candy machine Monitor',
+        description='Manage Candy Machine Monitor',
+        color=0x00ff00
+    )
+    help_embed.add_field(
+        name='!cm add',
+        value='Add a candy machine ID to Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!cm remove',
+        value='Remove a candy machine ID from Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!cm list',
+        value='List candy machine ID\'s that are being monitored',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!cm help',
+        value='Help overview',
+        inline=False
+    )
+    help_embed.set_footer(
+        text='Candy machine Monitor'
     )
     return help_embed
 
@@ -227,6 +264,53 @@ async def binance_manage_monitor_command(ctx, *args):
             return await ctx.send(embed=get_magiceden_help_embed())
     else:
         return await ctx.send(embed=get_magiceden_help_embed())
+
+@client.command(
+    name='candy machine',
+    description='Manage candy machine Monitor',
+    brief='Manage candy machine Monitor',
+    aliases=['cm'],
+    pass_context=True
+)
+@commands.has_any_role(*staff_roles)
+async def cm_manage_monitor_command(ctx, *args):
+    if len(args) == 0:
+        return await ctx.send(embed=get_cm_help_embed())
+    elif len(args) == 1:
+        cm_fh = CmFileHandler()
+        if args[0] == 'add':
+            await ctx.send(
+                "Enter a candy machine id to add it to the monitor list.\n"
+                "Example:\nGWe3Thk4XPyxBVKrSt3px1EfDjiBtPNUaEpv5DeX7XfY"
+            )
+            answer = await await_message(ctx)
+            if answer is not None:
+                cm_id = answer.strip()
+                cm_fh.add_to_list(cm_id)
+                await ctx.send(f"Added {answer} to the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        elif args[0] == 'remove':
+            await ctx.send(
+                "Enter a candy machine id to remove it from the monitor list.\n"
+                "Example:\nGWe3Thk4XPyxBVKrSt3px1EfDjiBtPNUaEpv5DeX7XfY"
+            )
+            answer = await await_message(ctx)
+            if answer is not None:
+                cm_id = answer.strip()
+                cm_fh.remove_from_list(cm_id)
+                await ctx.send(f"Removed {answer} from the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        elif args[0] == 'list':
+            list_of_all_collections = cm_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_cm_help_embed())
+    else:
+        return await ctx.send(embed=get_cm_help_embed())
 
 
 client.run(discord_bot_token)

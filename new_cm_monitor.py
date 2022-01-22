@@ -26,8 +26,12 @@ def main():
         cms_nfts_to_file(cms_nfts, metadata["candy_machine_id"])
         nft_name = "not found"
         if cms_nfts:
-            nft_name = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["name"]
-            nft_uri = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["uri"]
+            try:
+                nft_name = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["name"]
+                nft_uri = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["uri"]
+            except:
+                nft_name = cms_nfts["all_nfts"][0]["name"]
+                nft_uri = cms_nfts["all_nfts"][0]["uri"]
             image, description = get_data_of_uri(nft_uri)
         else:
             image, description = None, None

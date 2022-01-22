@@ -1,10 +1,10 @@
 import json
 import os
+import re
 import time
 from urllib.parse import urlparse, parse_qs
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
-
 from binance_filehandler import BinanceFileHandler
 from settings import webhook_url
 
@@ -18,7 +18,6 @@ def get_collection_data(product_id):
     except Exception as e:
         print("error getting response of binance header url", e)
 
-
 def get_pid_and_name_from_url(url):
     parsed_url = urlparse(url)
     try:
@@ -26,6 +25,16 @@ def get_pid_and_name_from_url(url):
         return parse_qs(parsed_url.query)["id"][0], collection_name
     except:
         return None, None
+
+def get_image_url(url):
+    response = requests.get(url)
+    # print(response.status_code, response.reason)
+    # print(response.text)
+    results = re.findall("avatarUrl\":\"(.*?)\"", response.text)
+    if results:
+        return results[0]
+    return None
+
 
 
 def save_single_collection_to_file(collection, product_id):
@@ -69,7 +78,7 @@ def check_collection_changes(old_data, new_data):
 
 
 def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number, collection_name,
-                    collection_id):
+                    collection_id, image):
     if up_or_down:
         dc_changed_amount = f"+{changed_amount}%"
     else:
@@ -122,6 +131,9 @@ def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_pric
         text="MetaMint",
         icon_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
     )
+
+    if image is not None:
+        embed.set_image(url=image)
     embed.set_timestamp()
     webhook.add_embed(embed)
     response = webhook.execute()
@@ -143,8 +155,9 @@ def main():
                 if collection_changed:
                     floor_price, up_or_down, changed_amount, volume, latest_price, items_number = check_collection_changes(
                         old_data, collection_new)
+                    image = get_image_url(collection_url)
                     send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
-                                    collection_name, product_id)
+                                    collection_name, product_id, image)
             save_single_collection_to_file(collection_new, product_id)
             time.sleep(5)
 

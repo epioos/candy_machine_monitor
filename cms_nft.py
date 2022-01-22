@@ -2,7 +2,7 @@ import json
 import os
 
 import requests
-
+from cm_change_files import read_from_file
 from settings import API_ID_KEY, API_SECRET_KEY
 from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork, SolanaCandyMachineContractVersion
 

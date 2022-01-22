@@ -3,13 +3,19 @@ from settings import webhook_url
 
 
 def send_discord_webhook(address, version, metadata, nft_name, image, description):
-    webhook = DiscordWebhook(url=webhook_url)
+    webhook = DiscordWebhook(url=webhook_url, avatar_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
     cm_timestamp = metadata.get("go_live_date", None)
     if cm_timestamp is not None:
         cm_timestamp = int(cm_timestamp)
         cm_timestamp_discord = f"<t:{cm_timestamp}:R>"
     else:
         cm_timestamp_discord = "not found"
+
+    if nft_name == "":
+        nft_name = "not found"
+
+    if description == "":
+        description = "not found"
 
     cm_machine_id = metadata.get("candy_machine_id", None)
     if cm_machine_id is not None:
@@ -26,7 +32,7 @@ def send_discord_webhook(address, version, metadata, nft_name, image, descriptio
         cm_price_discord = float(int(cm_price) / 1000000000).__round__(2).__str__() + " SOL"
     else:
         cm_price_discord = "not found"
-    embed = DiscordEmbed(title="New candy machine found", color='03b2f8')
+    embed = DiscordEmbed(title="New candy machine", color='00FFA3')
     embed.add_embed_field(name='name', value=nft_name, inline=False)
     embed.add_embed_field(name='address', value=address, inline=False)
     embed.add_embed_field(name='version', value=version, inline=False)
@@ -34,6 +40,8 @@ def send_discord_webhook(address, version, metadata, nft_name, image, descriptio
     embed.add_embed_field(name='go live', value=cm_timestamp_discord, inline=False)
     embed.add_embed_field(name='available items', value=cm_items_available_discord, inline=False)
     embed.add_embed_field(name='price', value=cm_price_discord, inline=False)
+    embed.set_footer(text='MetaMint', icon_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
+    embed.set_timestamp()
     if image is not None:
         embed.set_thumbnail(url=image)
     if description is not None:

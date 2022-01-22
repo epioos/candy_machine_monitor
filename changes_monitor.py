@@ -3,9 +3,10 @@ import os.path
 import time
 
 from webhook_monitor import send_minted_counter, send_new_unmited_nfts
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from cm_change_files import read_from_file
-
+from settings import webhook_url
 from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork
 from settings import API_ID_KEY, API_SECRET_KEY
 
@@ -14,46 +15,7 @@ BLOCKCHAIN_API_RESOURCE = TheBlockchainAPIResource(
     api_secret_key=API_SECRET_KEY
 )
 
-
-def get_cms_nft(cm_id, version, verbose=False, current_try=0):
-    max_retries = 5
-    if current_try >= max_retries:
-        print("too many retries", cm_id)
-        return None
-    current_try += 1
-    try:
-        assert API_ID_KEY is not None
-        assert API_SECRET_KEY is not None
-    except AssertionError:
-        raise Exception("Api key pair not found")
-    if version == "v1":
-        print(f"Retrieving all NFTs from the V1 candy machine with ID {cm_id}... "
-              f"This API call can take around 45 seconds...")
-        try:
-            result = BLOCKCHAIN_API_RESOURCE.get_all_nfts_from_candy_machine(
-                candy_machine_id=cm_id,
-                network=SolanaNetwork.MAINNET_BETA
-            )
-            return result
-        except:
-            print("error getting cm nft info", cm_id)
-            return get_cms_nft(cm_id, version, verbose, current_try)
-
-    elif version == "v2":
-        # NOTE: With v2 candy machines, more work is required... see below.
-        print(f"Retrieving all NFTs from the V2 candy machine with ID {cm_id}... "
-              f"This API call can take around 45 seconds...")
-        try:
-            result = BLOCKCHAIN_API_RESOURCE.get_all_nfts_from_candy_machine(
-                candy_machine_id=cm_id,
-                network=SolanaNetwork.MAINNET_BETA
-            )
-            return result
-        except:
-            print("error getting cm nft info", cm_id)
-            return get_cms_nft(cm_id, version, verbose, current_try)
-    else:
-        print("Version not matching")
+from get_cm_metadata import get_metadata_of_cm, save_metadata_to_file
 
 
 def get_version_of_cm(cm_id):
@@ -75,43 +37,62 @@ def get_old_data(cm_id):
         return json.loads(file.read())
 
 
-def compare_nfts(old_version, new_version):
-    list_new_nfts_unminted = []
-    if len(new_version["unminted_nfts"]) > len(old_version["unminted_nfts"]):
-        for new_nft in new_version["unminted_nfts"]:
-            if new_nft not in old_version["unminted_nfts"]:
-                list_new_nfts_unminted.append(new_nft)
-    return
-    # todo dont use this until we have a solution for project name
-    for x in range(0, len(list_new_nfts_unminted), 8):
-        todo_list = list_new_nfts_unminted[x:x + 8]
-        send_new_unmited_nfts(todo_list)
-    number_all_nfts = len(new_version["minted_nfts"]) + len(new_version["unminted_nfts"])
-    if len(new_version["minted_nfts"]) > len(old_version["minted_nfts"]):
-        send_minted_counter(number_all_nfts, len(new_version["minted_nfts"]))
-
-
 def save_nfts_to_file(cm_id, data):
     with open(f"./cms_nfts/{cm_id}.json", "w") as file:
         file.write(json.dumps(data))
 
 
+def read_metadata_from_file(cm_id):
+    try:
+        os.mkdir("./metadata/")
+    except:
+        pass
+    try:
+        with open(f"./metadata/{cm_id}.json", "r") as file:
+            return json.loads(file.read())
+    except Exception as e:
+        print("error reading metadata to file", e)
+        return None
+
+def compare_metadata(old_metadata, new_metadata):
+    if old_metadata["items_available"] != new_metadata["items_available"]:
+        return old_metadata["items_available"], new_metadata["items_available"]
+    else:
+        return None, None
+
+def send_metadata_change_to_discord(cm_id, old_availabe, new_available):
+    webhook = DiscordWebhook(url=webhook_url)
+    if old_availabe is None:
+        old_availabe = "not found"
+    embed = DiscordEmbed(title='Available items changed', description=cm_id, color='03b2f8')
+    embed.add_embed_field(name='Stock change', value=f"{old_availabe} -> {new_available}")
+
+    # add embed object to webhook
+    webhook.add_embed(embed)
+
+    response = webhook.execute()
+
 def main():
-    list_cm_to_monitor = read_from_file()
-    for cm in list_cm_to_monitor:
-        cm_version = get_version_of_cm(cm)
-        if cm_version is None:
-            continue
-        cm_nft_list = get_cms_nft(cm, cm_version, verbose=True)
-        old_nft_list = get_old_data(cm)
-        save_nfts_to_file(cm, cm_nft_list)
-        if old_nft_list is None:
-            print("no old nft data found")
-            continue
-        compare_nfts(old_nft_list, cm_nft_list)
+    while 1:
+        list_to_monitor = read_from_file()
+        for cm_id in list_to_monitor:
+            version = get_version_of_cm(cm_id)
+            if version is None:
+                continue
+            old_metadata = read_metadata_from_file(cm_id)
+            new_metadata = get_metadata_of_cm(cm_id, version)
+            if old_metadata is None:
+                send_metadata_change_to_discord(cm_id, None, new_metadata["items_available"])
+                save_metadata_to_file(new_metadata)
+                continue
+            old_availabe, new_available = compare_metadata(old_metadata, new_metadata)
+            if old_availabe is None and new_available is None:
+                continue
+            send_metadata_change_to_discord(cm_id, old_availabe, new_available)
+            save_metadata_to_file(new_metadata)
+            time.sleep(10)
 
 
 if __name__ == '__main__':
-    while 1:
-        main()
-        # time.sleep(15)
+    main()
+
