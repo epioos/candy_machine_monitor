@@ -85,7 +85,7 @@ def send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_pric
         dc_changed_amount = f"-{changed_amount}%"
     webhook = DiscordWebhook(
         url=webhook_url,
-        name="Binance Marketplace",
+        username="Binance Marketplace",
         avatar_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png",
     )
 
