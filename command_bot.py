@@ -71,7 +71,7 @@ def get_binance_help_embed():
     )
     help_embed.add_field(
         name='!binance add',
-        value='Add a Collection from Monitor List',
+        value='Add a Collection to Monitor List',
         inline=False
     )
     help_embed.add_field(
@@ -103,7 +103,7 @@ def get_magiceden_help_embed():
     )
     help_embed.add_field(
         name='!me add',
-        value='Add a Collection from Monitor List',
+        value='Add a Collection to Monitor List',
         inline=False
     )
     help_embed.add_field(
@@ -125,6 +125,7 @@ def get_magiceden_help_embed():
         text='MagicEden Monitor'
     )
     return help_embed
+
 
 def get_cm_help_embed():
     help_embed = discord.Embed(
@@ -264,6 +265,7 @@ async def binance_manage_monitor_command(ctx, *args):
             return await ctx.send(embed=get_magiceden_help_embed())
     else:
         return await ctx.send(embed=get_magiceden_help_embed())
+
 
 @client.command(
     name='candy machine',
