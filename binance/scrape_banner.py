@@ -65,7 +65,9 @@ def send_webhook(collection):
         text="MetaMint",
         icon_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
     )
-    embed.set_timestamp()
+    embed.set_timestamp(
+        timestamp=datetime.datetime.now().__str__()
+    )
     webhook.add_embed(embed)
     response = webhook.execute()
 

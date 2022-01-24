@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -144,10 +145,15 @@ def send_to_discord(floor_price, floor_currency, up_or_down, changed_amount, vol
     )
 
     if image is not None:
-        embed.set_image(url=image)
-    embed.set_timestamp()
+        embed.set_thumbnail(
+            url=image
+        )
+    embed.set_timestamp(
+        timestamp=datetime.datetime.now().__str__()
+    )
     webhook.add_embed(embed)
     response = webhook.execute()
+    print(response.request.body)
 
 
 def main():
@@ -167,6 +173,8 @@ def main():
                     floor_price, up_or_down, changed_amount, volume, latest_price, items_number = check_collection_changes(
                         old_data, collection_new)
                     image = get_image_url(collection_url)
+                    print(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
+                          collection_name, product_id, image)
                     send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
                                     collection_name, product_id, image)
             save_single_collection_to_file(collection_new, product_id)
