@@ -258,10 +258,13 @@ class MagicEden:
                 fields = {
                     "Launch Date": collection.get("launchDate", "not found"),
                     "Price": collection.get("price", "not found").__str__() + " SOL",
-                    "Candy Machine ID": collection["mint"]["candyMachineId"],
-                    "Config ID": collection["mint"]["config"],
-                    "Treasury": collection["mint"]["treasury"],
                 }
+                try:
+                    fields["Candy Machine ID"] = collection["mint"]["candyMachineId"]
+                    fields["Config ID"] = collection["mint"]["config"]
+                    fields["Treasury"] = collection["mint"]["treasury"]
+                except:
+                    pass
                 try:
                     fields["Tokens Available"] = collection["state"]["itemsAvailable"]
                     fields["Tokens Redeemed"] = collection["state"]["itemsRedeemed"]
