@@ -169,16 +169,27 @@ def main():
             if file_exists:
                 old_data = load_from_file(product_id)
                 # todo check if old_data is none
-                collection_changed = check_if_collection_changes(old_data, collection_new) # error here
+                collection_changed = check_if_collection_changes(old_data, collection_new)  # error here
                 if collection_changed:
                     floor_price, up_or_down, changed_amount, volume, latest_price, items_number = check_collection_changes(
                         old_data, collection_new)
                     image = get_image_url(collection_url)
                     print(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
                           collection_name, product_id, image)
-                    send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
-                                    collection_name, product_id, image) # arg missing
-            save_single_collection_to_file(collection_new, product_id)
+                    send_to_discord(
+                        floor_price,
+                        up_or_down,
+                        changed_amount,
+                        volume,
+                        latest_price,
+                        items_number,
+                        collection_name,
+                        product_id,
+                        image
+                    )
+                    save_single_collection_to_file(collection_new, product_id)
+            else:
+                save_single_collection_to_file(collection_new, product_id)
             time.sleep(5)
 
 
