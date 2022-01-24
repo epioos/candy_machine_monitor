@@ -168,20 +168,25 @@ def main():
             file_exists = check_if_pid_exists(product_id)
             if file_exists:
                 old_data = load_from_file(product_id)
-                # todo check if old_data is none
+                if old_data is None:
+                    save_single_collection_to_file(collection_new, product_id)
+                    continue
                 collection_changed = check_if_collection_changes(old_data, collection_new)  # error here
                 if collection_changed:
-                    floor_price, up_or_down, changed_amount, volume, latest_price, items_number = check_collection_changes(
+                    floor_price, floor_currency, up_or_down, changed_amount, volume_currency, volume, latest_price, latest_price_currency, items_number = check_collection_changes(
                         old_data, collection_new)
                     image = get_image_url(collection_url)
                     print(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
                           collection_name, product_id, image)
                     send_to_discord(
                         floor_price,
+                        floor_currency,
                         up_or_down,
                         changed_amount,
+                        volume_currency,
                         volume,
                         latest_price,
+                        latest_price_currency,
                         items_number,
                         collection_name,
                         product_id,
