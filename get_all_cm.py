@@ -48,7 +48,6 @@ def get_all_cm():
     print(f"There are a total of {len(result['config_addresses_magic-eden-v1'])} Magic Eden candy machines.")
     return result
 
-
 def compare_for_new_cm(all_cm_new, all_cm_old):
     new_cm_list = []
     for new_cm_v1 in all_cm_new['config_addresses_v1']:

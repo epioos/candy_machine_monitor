@@ -90,7 +90,7 @@ def main():
                 continue
             send_metadata_change_to_discord(cm_id, old_availabe, new_available)
             save_metadata_to_file(new_metadata)
-            time.sleep(10)
+            time.sleep(20)
 
 
 if __name__ == '__main__':
