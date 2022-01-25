@@ -1,9 +1,9 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from settings import webhook_url
+from settings import webhook_url_cm
 
 
 def send_discord_webhook(address, version, metadata, nft_name, image, description):
-    webhook = DiscordWebhook(url=webhook_url, avatar_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
+    webhook = DiscordWebhook(url=webhook_url_cm, avatar_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
     cm_timestamp = metadata.get("go_live_date", None)
     if cm_timestamp is not None:
         cm_timestamp = int(cm_timestamp)

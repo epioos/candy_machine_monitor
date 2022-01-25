@@ -7,6 +7,7 @@ import time
 import requests
 
 from magicden_filehandler import MagicEdenFileHandler
+from settings import webhook_url_me
 
 
 class FileHandler:
@@ -94,9 +95,9 @@ class MagicEden:
         self.collection_info_url = "https://api-mainnet.magiceden.io/collections/"
         self.collection_data_url = "https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/"
 
-        self.launchpad_releases_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
-        self.launchpad_collections_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
-        self.collection_monitor_webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
+        self.launchpad_releases_webhook_url = webhook_url_me
+        self.launchpad_collections_webhook_url = webhook_url_me
+        self.collection_monitor_webhook_url = webhook_url_me
 
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 

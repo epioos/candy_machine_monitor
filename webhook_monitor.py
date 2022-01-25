@@ -2,9 +2,9 @@ import json
 
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from settings import webhook_url
+from settings import webhook_url_cm
 
-webhook = DiscordWebhook(url=webhook_url)
+webhook = DiscordWebhook(url=webhook_url_cm)
 
 
 def send_minted_counter(number_all_nfts, current_number_nfts):

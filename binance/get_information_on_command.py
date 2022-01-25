@@ -1,7 +1,7 @@
 from binance.scrape_collection import get_pid_and_name_from_url, get_collection_data, get_image_url
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
-from settings import webhook_url
+from settings import webhook_url_binance
 
 
 def get_relevant_info_from_response(collection_response_data):
@@ -30,7 +30,7 @@ def send_information_to_discord(floor_price, floor_currency, up_or_down, changed
         else:
             dc_changed_amount = f"-{changed_amount}%"
         webhook = DiscordWebhook(
-            url=webhook_url,
+            url=webhook_url_binance,
             username="Binance Marketplace",
             avatar_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png",
         )

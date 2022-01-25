@@ -6,7 +6,7 @@ import time
 import discord
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
-from settings import webhook_url
+from settings import webhook_url_binance
 
 import requests
 
@@ -44,7 +44,7 @@ def send_webhook(collection):
     start_time = int(collection['startTime']/1000)
     end_time = int(collection['endTime']/1000)
     webhook = DiscordWebhook(
-        url=webhook_url,
+        url=webhook_url_binance,
         username="Binance Marketplace",
         avatar_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png",
     )

@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from binance_filehandler import BinanceFileHandler
-from settings import webhook_url
+from settings import webhook_url_binance
 
 
 def get_collection_data(product_id):
@@ -90,7 +90,7 @@ def send_to_discord(floor_price, floor_currency, up_or_down, changed_amount, vol
     else:
         dc_changed_amount = f"-{changed_amount}%"
     webhook = DiscordWebhook(
-        url=webhook_url,
+        url=webhook_url_binance,
         username="Binance Marketplace",
         avatar_url="https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png",
     )

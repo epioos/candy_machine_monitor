@@ -6,7 +6,7 @@ from webhook_monitor import send_minted_counter, send_new_unmited_nfts
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from cm_change_files import read_from_file
-from settings import webhook_url
+from settings import webhook_url_cm
 from theblockchainapi import TheBlockchainAPIResource, SolanaNetwork
 from settings import API_ID_KEY, API_SECRET_KEY
 
@@ -61,7 +61,7 @@ def compare_metadata(old_metadata, new_metadata):
         return None, None
 
 def send_metadata_change_to_discord(cm_id, old_availabe, new_available):
-    webhook = DiscordWebhook(url=webhook_url)
+    webhook = DiscordWebhook(url=webhook_url_cm)
     if old_availabe is None:
         old_availabe = "not found"
     embed = DiscordEmbed(title='Available items changed', description=cm_id, color='03b2f8')
