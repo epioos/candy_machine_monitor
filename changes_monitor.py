@@ -74,6 +74,7 @@ def send_metadata_change_to_discord(cm_id, old_availabe, new_available):
 
 def main():
     while 1:
+        print("hi")
         list_to_monitor = read_from_file()
         for cm_id in list_to_monitor:
             version = get_version_of_cm(cm_id)
@@ -81,6 +82,9 @@ def main():
                 continue
             old_metadata = read_metadata_from_file(cm_id)
             new_metadata = get_metadata_of_cm(cm_id, version)
+            if old_metadata is None:
+                save_metadata_to_file(new_metadata)
+                continue
             if old_metadata is None:
                 send_metadata_change_to_discord(cm_id, None, new_metadata["items_available"])
                 save_metadata_to_file(new_metadata)
@@ -90,7 +94,7 @@ def main():
                 continue
             send_metadata_change_to_discord(cm_id, old_availabe, new_available)
             save_metadata_to_file(new_metadata)
-            time.sleep(20)
+        time.sleep(60)
 
 
 if __name__ == '__main__':

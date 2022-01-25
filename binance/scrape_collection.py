@@ -148,9 +148,7 @@ def send_to_discord(floor_price, floor_currency, up_or_down, changed_amount, vol
         embed.set_thumbnail(
             url=image
         )
-    embed.set_timestamp(
-        timestamp=datetime.datetime.now().__str__()
-    )
+    embed.set_timestamp()
     webhook.add_embed(embed)
     response = webhook.execute()
     print(response.request.body)
