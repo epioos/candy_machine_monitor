@@ -176,6 +176,7 @@ def main():
                     image = get_image_url(collection_url)
                     print(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
                           collection_name, product_id, image)
+<<<<<<< Updated upstream
                     send_to_discord(
                         floor_price,
                         floor_currency,
@@ -193,6 +194,11 @@ def main():
                     save_single_collection_to_file(collection_new, product_id)
             else:
                 save_single_collection_to_file(collection_new, product_id)
+=======
+                    send_to_discord(floor_price, up_or_down, changed_amount, volume, latest_price, items_number,
+                                    collection_name, product_id, image, floor_currency) # arg missing
+            save_single_collection_to_file(collection_new, product_id)
+>>>>>>> Stashed changes
             time.sleep(5)
 
 
