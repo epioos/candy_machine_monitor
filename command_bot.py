@@ -1,8 +1,10 @@
 import asyncio
 
 import discord
+import helheim
 from discord.ext import commands
 
+from ME.magiceden import MagicEden
 from binance.get_information_on_command import send_binance_information
 from binance_filehandler import BinanceFileHandler
 from cm_filehandler import CmFileHandler
@@ -48,6 +50,11 @@ def get_help_help_embed():
         value='Shows all commands for managing candy machine Monitor',
         inline=False
     )
+    help_embed.add_field(
+        name='!check',
+        value='Shows all commands to get information about a collection',
+        inline=False
+    )
     help_embed.set_footer(
         text='MetaMint Monitors'
     )
@@ -71,20 +78,21 @@ def get_check_help_embed():
         color=0x00ff00
     )
     help_embed.add_field(
-        name='!check binance',
+        name='!check binance [url]',
         value='Providing information about a collection on Binance',
         inline=False
     )
     help_embed.add_field(
-        name='!check me',
+        name='!check me [url]',
         value='Providing information about a collection on Magic Eden',
         inline=False
     )
     help_embed.add_field(
-        name='!check cm',
+        name='!check cm [url]',
         value='Providing information about a collection on Candy machine',
         inline=False
     )
+    return help_embed
 
 def get_binance_help_embed():
     help_embed = discord.Embed(
@@ -345,5 +353,34 @@ async def cm_manage_monitor_command(ctx, *args):
     pass_context=True
 )
 
+async def check_information_command(ctx, *args):
+    if len(args) == 0:
+        return await ctx.send(embed=get_check_help_embed())
+    elif len(args) == 2:
+        if args[0] == 'binance':
+            print("doing binance stuff")
+            url = args[1]
+            try:
+                binance_embed = send_binance_information(url)
+                print(binance_embed)
+                return await ctx.send(embed=binance_embed)
+            except Exception as e:
+                print(e)
+                return await ctx.send("Failed getting collection information")
+        elif args[0] == 'me':
+            try:
+                helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
+                me_monitor = MagicEden()
+                me_embed = me_monitor.get_collection_info_for_command(args[1])
+                return await ctx.send(embed=me_embed)
+            except:
+                return await ctx.send("Failed getting collection information")
+        elif args[0] == 'cm':
+            print("doing candy machine stuff")
+        else:
+            await ctx.send("No valid input")
+            return await ctx.send(embed=get_check_help_embed())
+    else:
+        return await ctx.send(embed=get_check_help_embed())
 
 client.run(discord_bot_token)
