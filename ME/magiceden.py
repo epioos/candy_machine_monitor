@@ -474,23 +474,28 @@ class MagicEden:
             )
             embed.add_field(
                 name="Floor Price",
-                value=f'{collection_data["floorPrice"] / 1000000000} SOL'
+                value=f'{collection_data["floorPrice"] / 1000000000} SOL',
+                inline=False,
             )
             embed.add_field(
                 name="Listed Count",
-                value=collection_data["listedCount"]
+                value=collection_data["listedCount"],
+                inline=False,
             )
             embed.add_field(
                 name="Avg Price 24 Hours",
-                value=f'{collection_data["avgPrice24hr"] / 1000000000} SOL'
+                value=f'{collection_data["avgPrice24hr"] / 1000000000} SOL',
+                inline=False,
             )
             embed.add_field(
                 name="Volume 24 Hours",
-                value=f'{collection_data["volume24hr"] / 1000000000} SOL'
+                value=f'{collection_data["volume24hr"] / 1000000000} SOL',
+                inline=False,
             )
             embed.add_field(
                 name=f"Last Floor Change",
-                value=f"<t:{collection_data.get('lastChange', int(time.time()))}:R>"
+                value=f"<t:{collection_data.get('lastChange', int(time.time()))}:R>",
+                inline=False,
             )
             embed.set_author(
                 name="Magiceden",
