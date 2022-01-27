@@ -4,7 +4,10 @@ import os
 import random
 import time
 
+import cloudscraper
+import helheim
 import requests
+from discord import Embed
 
 from magicden_filehandler import MagicEdenFileHandler
 from settings import webhook_url_me
@@ -103,9 +106,28 @@ class MagicEden:
 
         self.file_handler = FileHandler()
 
+        self.session = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'mobile': False,
+                'platform': 'windows'
+            },
+            requestPostHook=self.injection,
+            captcha={
+                'provider': 'vanaheim'
+            }
+        )
+
         self.proxy_list = self.file_handler.get_proxies()
         self.proxy = None
         self.rotate_proxy()
+
+    def injection(self, session, response):
+        if helheim.isChallenge(session, response):
+            # solve(session, response, max_tries=5)
+            return helheim.solve(session, response)
+        else:
+            return response
 
     def rotate_proxy(self):
         try:
@@ -114,8 +136,14 @@ class MagicEden:
                 "http": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}",
                 "https": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
             }
+            self.session.proxies.update(proxy_dict)
         except IndexError:
             proxy_dict = None
+            self.session.proxies.update(None)
+        try:
+            self.session.cookies.clear()
+        except:
+            pass
         print(f"Using proxy: {proxy_dict}")
         self.proxy = proxy_dict
 
@@ -128,16 +156,16 @@ class MagicEden:
             'authority': 'api-mainnet.magiceden.io',
             'cache-control': 'max-age=0',
             'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
             'accept': 'application/json',
             'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
         }
 
-        response = requests.request(
+        response = self.session.request(
             method="GET",
             url=self.upcoming_launches_url,
             headers=headers,
-            proxies=self.proxy,
+            # proxies=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -150,16 +178,16 @@ class MagicEden:
             'authority': 'api-mainnet.magiceden.io',
             'cache-control': 'max-age=0',
             'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
             'accept': 'application/json',
             'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
         }
 
-        response = requests.request(
+        response = self.session.request(
             method="GET",
             url=self.launchpad_collections_url,
             headers=headers,
-            proxies=self.proxy,
+            # proxies=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -172,16 +200,16 @@ class MagicEden:
             'authority': 'api-mainnet.magiceden.io',
             'cache-control': 'max-age=0',
             'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
             'accept': 'application/json',
             'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
         }
 
-        response = requests.request(
+        response = self.session.request(
             method="GET",
             url=self.collection_info_url + slug,
             headers=headers,
-            proxies=self.proxy,
+            # proxies=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -194,16 +222,16 @@ class MagicEden:
             'authority': 'api-mainnet.magiceden.io',
             'cache-control': 'max-age=0',
             'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
             'accept': 'application/json',
             'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
         }
 
-        response = requests.request(
+        response = self.session.request(
             method="GET",
             url=self.collection_data_url + slug,
             headers=headers,
-            proxies=self.proxy,
+            # proxies=self.proxy,
             timeout=30,
         )
         # print(response.status_code, response.text)
@@ -217,16 +245,16 @@ class MagicEden:
             'authority': 'api-mainnet.magiceden.io',
             'cache-control': 'max-age=0',
             'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
+            # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
             'accept': 'application/json',
             'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,da;q=0.6,ja;q=0.5,und;q=0.4,ru;q=0.3,fr;q=0.2',
         }
 
-        response = requests.request(
+        response = self.session.request(
             method="GET",
             url=self.all_collections_data_url,
             headers=headers,
-            proxies=self.proxy,
+            # proxies=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -431,6 +459,52 @@ class MagicEden:
                 fields=fields,
             )
 
+    def get_collection_info_for_command(self, slug):
+        try:
+            collection_info = self.get_collection_info(slug)
+            collection_data = self.get_collection_data(slug)
+            embed = Embed(
+                title=collection_info.get("name", "name not found"),
+                url=f'https://magiceden.io/marketplace/{slug}',
+                description=collection_info.get("description", "description not found"),
+                color=0xF0258B,
+            )
+            embed.set_thumbnail(
+                url=collection_info.get("image", None)
+            )
+            embed.add_field(
+                name="Floor Price",
+                value=f'{collection_data["floorPrice"] / 1000000000} SOL'
+            )
+            embed.add_field(
+                name="Listed Count",
+                value=collection_data["listedCount"]
+            )
+            embed.add_field(
+                name="Avg Price 24 Hours",
+                value=f'{collection_data["avgPrice24hr"] / 1000000000} SOL'
+            )
+            embed.add_field(
+                name="Volume 24 Hours",
+                value=f'{collection_data["volume24hr"] / 1000000000} SOL'
+            )
+            embed.add_field(
+                name=f"Last Floor Change",
+                value=f"<t:{collection_data.get('lastChange', int(time.time()))}:R>"
+            )
+            embed.set_author(
+                name="Magiceden",
+                icon_url="https://www.magiceden.io/img/favicon.png"
+            )
+            embed.set_footer(
+                text="MetaMint",
+                icon_url=self.logo_url
+            )
+        except:
+            return None
+        else:
+            return embed
+
     def send_webhook(self, event, text, author, url, image, target_webhook, fields):
         time_now = datetime.datetime.now()
         data = {
@@ -511,4 +585,5 @@ def main():
 
 
 if __name__ == "__main__":
+    helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
     main()
