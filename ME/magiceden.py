@@ -9,13 +9,12 @@ import helheim
 import requests
 from discord import Embed
 
-from magicden_filehandler import MagicEdenFileHandler
 from settings import webhook_url_me
 
 
 class FileHandler:
     def __init__(self):
-        self.file_path = os.getcwd()
+        self.file_path = os.path.dirname(os.path.realpath(__file__))
         self.launchpad_folder_path = os.path.join(self.file_path, "launchpad")
         self.collections_folder_path = os.path.join(self.file_path, "collections")
         self.collection_data_folder_path = os.path.join(self.file_path, "collection_data")
