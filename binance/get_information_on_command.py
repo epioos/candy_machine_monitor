@@ -72,6 +72,7 @@ def send_information_to_discord(floor_price, floor_currency, up_or_down, changed
         if image_url is not None:
             embed.set_image(url=image_url)
         embed.set_timestamp()
+        webhook.execute()
     except Exception as e:
         print("couldnt get information for binance info command", e)
 

@@ -64,6 +64,28 @@ async def help_command(ctx):
     await ctx.send(embed=get_help_help_embed())
 
 
+def get_check_help_embed():
+    help_embed = discord.Embed(
+        title='Information check',
+        description='Check Collection information for Magic Eden, Binance or Candy machine',
+        color=0x00ff00
+    )
+    help_embed.add_field(
+        name='!check binance',
+        value='Providing information about a collection on Binance',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!check me',
+        value='Providing information about a collection on Magic Eden',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!check cm',
+        value='Providing information about a collection on Candy machine',
+        inline=False
+    )
+
 def get_binance_help_embed():
     help_embed = discord.Embed(
         title='Binance Monitor',
@@ -314,6 +336,14 @@ async def cm_manage_monitor_command(ctx, *args):
             return await ctx.send(embed=get_cm_help_embed())
     else:
         return await ctx.send(embed=get_cm_help_embed())
+
+@client.command(
+    name='check information',
+    description='Check Collection information for Magic Eden, Binance or Candy machine',
+    brief='Checking collection data',
+    aliases=['check'],
+    pass_context=True
+)
 
 
 client.run(discord_bot_token)
