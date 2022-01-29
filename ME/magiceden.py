@@ -19,6 +19,7 @@ class FileHandler:
         self.collections_folder_path = os.path.join(self.file_path, "collections")
         self.collection_data_folder_path = os.path.join(self.file_path, "collection_data")
         self.collection_info_folder_path = os.path.join(self.file_path, "collection_info")
+        self.collections_interval_folder_path = os.path.join(self.file_path, "collections_interval")
         self.create_folders()
 
     def get_proxies(self):
@@ -39,6 +40,8 @@ class FileHandler:
             os.makedirs(self.collection_data_folder_path)
         if not os.path.exists(self.collection_info_folder_path):
             os.makedirs(self.collection_info_folder_path)
+        if not os.path.exists(self.collections_interval_folder_path):
+            os.makedirs(self.collections_interval_folder_path)
 
     def save_collection_to_file(self, collection_id, collection_data):
         collection_file_path = os.path.join(self.collections_folder_path, collection_id + ".json")
@@ -87,6 +90,18 @@ class FileHandler:
             return None
         with open(collection_info_file_path, "r") as collection_info_file:
             return json.loads(collection_info_file.read())
+
+    def save_collection_interval_to_file(self, slug, collection_data):
+        collection_interval_file_path = os.path.join(self.collections_interval_folder_path, slug + ".json")
+        with open(collection_interval_file_path, "w") as collection_interval_file:
+            collection_interval_file.write(json.dumps(collection_data, indent=4))
+
+    def get_collection_interval_from_file(self, slug):
+        collection_interval_file_path = os.path.join(self.collections_interval_folder_path, slug + ".json")
+        if not os.path.isfile(collection_interval_file_path):
+            return None
+        with open(collection_interval_file_path, "r") as collection_interval_file:
+            return json.loads(collection_interval_file.read())
 
 
 class MagicEden:
@@ -387,8 +402,10 @@ class MagicEden:
             self.file_handler.save_collection_data_to_file(slug, collection_data)
             floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
             listedCount = collection_data["listedCount"]
-            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
-            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2) \
+                if collection_data.get("avgPrice24hr", None) is not None else 1
+            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2) \
+                if collection_data.get("volume24hr", None) is not None else 1
 
             fields = {
                 "Floor Price": f"{floor_price} SOL",
@@ -410,13 +427,17 @@ class MagicEden:
             self.file_handler.save_collection_data_to_file(slug, collection_data)
             floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
             listedCount = collection_data["listedCount"]
-            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
-            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2) \
+                if collection_data.get("avgPrice24hr", None) is not None else 1
+            volume24hr = float(collection_data.get("volume24hr", None) / 1000000000).__round__(2) \
+                if collection_data.get("volume24hr", None) is not None else 1
 
             old_floor_price = float(old_collection_data["floorPrice"] / 1000000000).__round__(2)
             old_listedCount = old_collection_data["listedCount"]
-            old_avgPrice24hr = float(old_collection_data["avgPrice24hr"] / 1000000000).__round__(2)
-            old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2)
+            old_avgPrice24hr = float(old_collection_data["avgPrice24hr"] / 1000000000).__round__(2) \
+                if old_collection_data.get("avgPrice24hr", None) is not None else 1
+            old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2) \
+                if old_collection_data.get("volume24hr", None) is not None else 1
 
             floor_change_positive = "+" if floor_price > old_floor_price else ""
             floor_change_in_percentage = float((floor_price - old_floor_price) / old_floor_price * 100).__round__(2)
@@ -456,6 +477,128 @@ class MagicEden:
                 image=collection_info.get("image", None),
                 target_webhook=self.collection_monitor_webhook_url,
                 fields=fields,
+            )
+
+    def check_all_collections_in_interval(self, slug_list):
+        data = []
+        for slug in slug_list:
+            print(datetime.datetime.now(), "check_collection_by_slug", slug)
+            collection_info = self.file_handler.get_collection_info_from_file(slug)
+            if collection_info is None:
+                try:
+                    collection_info = self.get_collection_info(slug)
+                except Exception as e:
+                    print("error get_collection_info:", e)
+                    self.rotate_proxy()
+                    continue
+                self.file_handler.save_collection_info_to_file(slug, collection_info)
+            try:
+                collection_data = self.get_collection_data(slug)
+            except Exception as e:
+                print("error get_collection_data:", e)
+                self.rotate_proxy()
+                continue
+            if collection_data is None:
+                print("failed getting collection data by slug", slug)
+                self.rotate_proxy()
+                continue
+            old_collection_data = self.file_handler.get_collection_interval_from_file(slug)
+
+            collection_data = collection_data["results"]
+            if old_collection_data is None:
+                print("new collection found", slug)
+                self.file_handler.save_collection_interval_to_file(slug, collection_data)
+                try:
+                    floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
+                    listedCount = collection_data["listedCount"]
+                    avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
+                    volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+                except:
+                    continue
+
+                fields = {
+                    "Collection Name": collection_info.get("name", "name not found"),
+                    "Floor Price": f"{floor_price} SOL",
+                    "Listed Count": f"{listedCount} items",
+                    "Avg Price 24 Hours": f"{avgPrice24hr} SOL",
+                    "Volume 24 Hours": f"{volume24hr} SOL",
+                    "image": collection_info.get("image", None),
+                }
+                # collection_str = " ".join([f"{k}: {v}" for k, v in fields.items()])
+                data.append(fields)
+            elif old_collection_data["floorPrice"] != collection_data["floorPrice"]:
+                print("collection changed", slug)
+                self.file_handler.save_collection_interval_to_file(slug, collection_data)
+                floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
+                listedCount = collection_data["listedCount"]
+                avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2) \
+                    if collection_data["avgPrice24hr"] is not None else 1
+                volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2) \
+                    if collection_data["volume24hr"] is not None else 1
+
+                old_floor_price = float(old_collection_data["floorPrice"] / 1000000000).__round__(2)
+                old_listedCount = old_collection_data["listedCount"]
+                old_avgPrice24hr = float(old_collection_data["avgPrice24hr"] / 1000000000).__round__(2) if \
+                    old_collection_data["avgPrice24hr"] is not None else 1
+                old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2) if \
+                    old_collection_data["volume24hr"] is not None else 1
+
+                floor_change_positive = "+" if floor_price > old_floor_price else ""
+                floor_change_in_percentage = float((floor_price - old_floor_price) / old_floor_price * 100).__round__(2)
+                listed_count_change_positive = "+" if listedCount > old_listedCount else ""
+                listed_count_change_in_percentage = float(
+                    (listedCount - old_listedCount) / old_listedCount * 100).__round__(2)
+                avg_price_24hr_change_positive = "+" if avgPrice24hr > old_avgPrice24hr else ""
+                avg_price_24hr_change_in_percentage = float(
+                    (avgPrice24hr - old_avgPrice24hr) / old_avgPrice24hr * 100
+                ).__round__(2)
+                volume_24hr_change_positive = "+" if volume24hr > old_volume24hr else ""
+                volume_24hr_change_in_percentage = float(
+                    (volume24hr - old_volume24hr) / old_volume24hr * 100
+                ).__round__(2)
+
+                fields = {
+                    "Collection Name": collection_info.get("name", "name not found"),
+                    "Floor Price": f'{old_floor_price} -> {floor_price} SOL '
+                                   f'({floor_change_positive}{floor_change_in_percentage}%)'
+                    if floor_price != old_floor_price else f'{floor_price} SOL',
+                    "Listed Count": f'{old_listedCount} -> {listedCount} items '
+                                    f'({listed_count_change_positive}{listed_count_change_in_percentage}%)'
+                    if listedCount != old_listedCount else f'{listedCount} items',
+                    "Avg Price 24 Hours": f'{old_avgPrice24hr} -> {avgPrice24hr} SOL '
+                                          f'({avg_price_24hr_change_positive}{avg_price_24hr_change_in_percentage}%)'
+                    if avgPrice24hr != old_avgPrice24hr else f'{avgPrice24hr} SOL',
+                    "Volume 24 Hours": f'{old_volume24hr} -> {volume24hr} SOL '
+                                       f'({volume_24hr_change_positive}{volume_24hr_change_in_percentage}%)',
+                    "image": collection_info.get("image", None),
+                }
+
+                # collection_str = " ".join([f"{k}: {v}" for k, v in fields.items()])
+                data.append(fields)
+        i = 1
+        for x in range(0, len(data), 5):
+            todo = data[x:x + 5]
+            new_todo = {}
+            image_url = None
+            for t in todo:
+                collection_name = t.get("Collection Name", "not found")
+                if t.get("image") is not None and image_url is None:
+                    image_url = t.get("image")
+                t.pop("image")
+                t.pop("Collection Name")
+                new_data_str = "\n".join([f"{k}: {v}" for k, v in t.items()])
+                new_todo[collection_name] = new_data_str
+                i += 1
+            self.send_webhook(
+                event="Floor Price Ticker (15 min interval)",
+                author="Collection Monitor",
+                # text=todo_str,
+                text=None,
+                url=f'https://magiceden.io/collections?type=popular',
+                image=image_url,
+                target_webhook="https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL",
+                # self.collection_monitor_webhook_url,
+                fields=new_todo,
             )
 
     def get_collection_info_for_command(self, slug):
