@@ -18,26 +18,29 @@ def get_metadata_of_cm(cm_address, version):
     except AssertionError:
         raise Exception("Api key pair not found")
 
-    versions = {
-        "v1": SolanaCandyMachineContractVersion.V1,
-        "v2": SolanaCandyMachineContractVersion.V2
-    }
-
-    candy_machine_id = cm_address
     try:
-        metadata = BLOCKCHAIN_API_RESOURCE.get_candy_machine_metadata(
-            config_address=candy_machine_id,
-            network=SolanaNetwork.MAINNET_BETA,
-            candy_machine_contract_version=versions[version]
-        )
-        # print("metadata response", type(metadata), metadata)
-    except Exception as e:
-        print("error getting cm metadata", e.__class__.__name__, e)
-        return None
-    else:
-        if "candy_machine_id" not in metadata:
+        versions = {
+            "v1": SolanaCandyMachineContractVersion.V1,
+            "v2": SolanaCandyMachineContractVersion.V2
+        }
+
+        candy_machine_id = cm_address
+        try:
+            metadata = BLOCKCHAIN_API_RESOURCE.get_candy_machine_metadata(
+                config_address=candy_machine_id,
+                network=SolanaNetwork.MAINNET_BETA,
+                candy_machine_contract_version=versions[version]
+            )
+            #print("metadata response", type(metadata), metadata)
+        except Exception as e:
+            print("error getting cm metadata", e)
             return None
-        return metadata
+        else:
+            if "candy_machine_id" not in metadata:
+                return None
+            return metadata
+    except:
+        return None
 
 
 def save_metadata_to_file(metadata):

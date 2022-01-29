@@ -77,7 +77,10 @@ def main():
         print("hi")
         list_to_monitor = read_from_file()
         for cm_id in list_to_monitor:
-            version = get_version_of_cm(cm_id)
+            try:
+                version = get_version_of_cm(cm_id)
+            except:
+                continue
             if version is None:
                 continue
             old_metadata = read_metadata_from_file(cm_id)
