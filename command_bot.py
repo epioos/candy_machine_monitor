@@ -8,6 +8,7 @@ from ME.magiceden import MagicEden
 from binance.get_information_on_command import send_binance_information
 from binance_filehandler import BinanceFileHandler
 from cm_filehandler import CmFileHandler
+from cm_get_info_on_command import send_cm_information
 from magicden_filehandler import MagicEdenFileHandler
 from settings import discord_bot_token
 
@@ -85,12 +86,12 @@ def get_check_help_embed():
         inline=False
     )
     help_embed.add_field(
-        name='!check me [url]',
+        name='!check me [url path eg. https://magiceden.io/marketplace/botborgs -> botborgs]',
         value='Providing information about a collection on Magic Eden',
         inline=False
     )
     help_embed.add_field(
-        name='!check cm [url]',
+        name='!check cm [candy machine id]',
         value='Providing information about a collection on Candy machine',
         inline=False
     )
@@ -379,7 +380,11 @@ async def check_information_command(ctx, *args):
             except:
                 return await ctx.send("Failed getting collection information")
         elif args[0] == 'cm':
-            print("doing candy machine stuff")
+            cm_id = args[1]
+            cm_embed = send_cm_information(cm_id)
+            if cm_embed is None:
+                return await ctx.send("Failed getting collection information")
+            return await ctx.send(embed=cm_embed)
         else:
             await ctx.send("No valid input")
             return await ctx.send(embed=get_check_help_embed())

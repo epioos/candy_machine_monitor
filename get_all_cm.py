@@ -38,15 +38,17 @@ def get_all_cm():
         assert API_SECRET_KEY is not None
     except AssertionError:
         raise Exception("Api key pair not found")
-
-    current_time = int(time.time())
-    result = BLOCKCHAIN_API_RESOURCE.list_all_candy_machines()
-    print(result.keys())
-    print(f"Last updated approx. {(current_time - result['last_updated']) // 60} minutes ago.")
-    print(f"There are a total of {len(result['config_addresses_v1'])} V1 candy machines.")
-    print(f"There are a total of {len(result['config_addresses_v2'])} V2 candy machines.")
-    print(f"There are a total of {len(result['config_addresses_magic-eden-v1'])} Magic Eden candy machines.")
-    return result
+    try:
+        current_time = int(time.time())
+        result = BLOCKCHAIN_API_RESOURCE.list_all_candy_machines()
+        print(result.keys())
+        print(f"Last updated approx. {(current_time - result['last_updated']) // 60} minutes ago.")
+        print(f"There are a total of {len(result['config_addresses_v1'])} V1 candy machines.")
+        print(f"There are a total of {len(result['config_addresses_v2'])} V2 candy machines.")
+        print(f"There are a total of {len(result['config_addresses_magic-eden-v1'])} Magic Eden candy machines.")
+        return result
+    except:
+        return None
 
 def compare_for_new_cm(all_cm_new, all_cm_old):
     new_cm_list = []

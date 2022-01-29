@@ -9,6 +9,8 @@ from cms_nft import get_cms_nft, cms_nfts_to_file, get_data_of_uri
 def main():
     while 1:
         all_cm_new = get_all_cm()
+        if all_cm_new is None:
+            continue
         # print("all_cm_new:", all_cm_new)
         all_cm_old = read_all_cm_from_file()
         # print("all_cm_old:", all_cm_old)

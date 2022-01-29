@@ -31,9 +31,10 @@ def get_cms_nft(cm_id, version, verbose=False, current_try=0):
                 candy_machine_id=cm_id,
                 network=SolanaNetwork.MAINNET_BETA
             )
+            print(result)
             return result
-        except:
-            print("error getting cm nft info", cm_id)
+        except Exception as e:
+            print("error getting cm nft info", cm_id, e)
             return get_cms_nft(cm_id, version, verbose, current_try)
 
     elif version == "v2":
@@ -46,8 +47,8 @@ def get_cms_nft(cm_id, version, verbose=False, current_try=0):
                 network=SolanaNetwork.MAINNET_BETA
             )
             return result
-        except:
-            print("error getting cm nft info", cm_id)
+        except Exception as e:
+            print("error getting cm nft info", cm_id, e)
             return get_cms_nft(cm_id, version, verbose, current_try)
     else:
         print("Version not matching")
