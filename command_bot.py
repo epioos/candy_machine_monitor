@@ -23,6 +23,8 @@ staff_roles = [
     913185856326631516,  # mod
 ]
 
+helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
+
 
 @client.event
 async def on_ready():
@@ -93,6 +95,7 @@ def get_check_help_embed():
         inline=False
     )
     return help_embed
+
 
 def get_binance_help_embed():
     help_embed = discord.Embed(
@@ -345,6 +348,7 @@ async def cm_manage_monitor_command(ctx, *args):
     else:
         return await ctx.send(embed=get_cm_help_embed())
 
+
 @client.command(
     name='check information',
     description='Check Collection information for Magic Eden, Binance or Candy machine',
@@ -352,7 +356,6 @@ async def cm_manage_monitor_command(ctx, *args):
     aliases=['check'],
     pass_context=True
 )
-
 async def check_information_command(ctx, *args):
     if len(args) == 0:
         return await ctx.send(embed=get_check_help_embed())
@@ -369,9 +372,9 @@ async def check_information_command(ctx, *args):
                 return await ctx.send("Failed getting collection information")
         elif args[0] == 'me':
             try:
-                helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
                 me_monitor = MagicEden()
                 me_embed = me_monitor.get_collection_info_for_command(args[1])
+                print("me_embed", me_embed)
                 return await ctx.send(embed=me_embed)
             except:
                 return await ctx.send("Failed getting collection information")
@@ -382,5 +385,6 @@ async def check_information_command(ctx, *args):
             return await ctx.send(embed=get_check_help_embed())
     else:
         return await ctx.send(embed=get_check_help_embed())
+
 
 client.run(discord_bot_token)

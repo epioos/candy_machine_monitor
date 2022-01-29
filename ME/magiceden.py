@@ -462,6 +462,15 @@ class MagicEden:
         try:
             collection_info = self.get_collection_info(slug)
             collection_data = self.get_collection_data(slug)
+            collection_data = collection_data["results"]
+            # print(collection_info)
+            # print(collection_data)
+
+            floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
+            listedCount = collection_data["listedCount"]
+            avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2)
+            volume24hr = float(collection_data["volume24hr"] / 1000000000).__round__(2)
+
             embed = Embed(
                 title=collection_info.get("name", "name not found"),
                 url=f'https://magiceden.io/marketplace/{slug}',
@@ -473,29 +482,29 @@ class MagicEden:
             )
             embed.add_field(
                 name="Floor Price",
-                value=f'{collection_data["floorPrice"] / 1000000000} SOL',
+                value=f'{floor_price} SOL',
                 inline=False,
             )
             embed.add_field(
                 name="Listed Count",
-                value=collection_data["listedCount"],
+                value=listedCount,
                 inline=False,
             )
             embed.add_field(
                 name="Avg Price 24 Hours",
-                value=f'{collection_data["avgPrice24hr"] / 1000000000} SOL',
+                value=f'{avgPrice24hr} SOL',
                 inline=False,
             )
             embed.add_field(
                 name="Volume 24 Hours",
-                value=f'{collection_data["volume24hr"] / 1000000000} SOL',
+                value=f'{volume24hr} SOL',
                 inline=False,
             )
-            embed.add_field(
-                name=f"Last Floor Change",
-                value=f"<t:{collection_data.get('lastChange', int(time.time()))}:R>",
-                inline=False,
-            )
+            # embed.add_field(
+            #     name=f"Last Floor Change",
+            #     value=f"<t:{collection_data.get('lastChange', int(time.time()))}:R>",
+            #     inline=False,
+            # )
             embed.set_author(
                 name="Magiceden",
                 icon_url="https://www.magiceden.io/img/favicon.png"
@@ -504,7 +513,8 @@ class MagicEden:
                 text="MetaMint",
                 icon_url=self.logo_url
             )
-        except:
+        except Exception as e:
+            print("error getting collection info for command:", e, e.__class__.__name__)
             return None
         else:
             return embed
