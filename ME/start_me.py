@@ -1,3 +1,4 @@
+import datetime
 import time
 
 import helheim
@@ -17,7 +18,7 @@ def main():
         for collection_slug in collection_list:
             me_monitor.check_collection_by_slug(collection_slug)
             time.sleep(0.5)
-        if last_run_timestamp_interval_monitor < int(time.time() + int(60 * 15)):
+        if last_run_timestamp_interval_monitor < (datetime.datetime.now() + datetime.timedelta(minutes=15)).timestamp():
             print("interval monitor running")
             me_monitor.check_all_collections_in_interval(collection_list)
             last_run_timestamp_interval_monitor = time.time()
