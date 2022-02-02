@@ -12,6 +12,7 @@ from cm_get_info_on_command import send_cm_information
 from magicden_filehandler import MagicEdenFileHandler
 from settings import discord_bot_token
 
+
 # intents = discord.Intents.default()
 # intents.members = True
 client = commands.Bot(command_prefix='!')  # , intents=intents)  # Bot Prefix
@@ -51,6 +52,11 @@ def get_help_help_embed():
     help_embed.add_field(
         name='!cm',
         value='Shows all commands for managing candy machine Monitor',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!os',
+        value='Shows all commands for managing open sea Monitor',
         inline=False
     )
     help_embed.add_field(
@@ -190,6 +196,37 @@ def get_cm_help_embed():
     )
     help_embed.set_footer(
         text='Candy machine Monitor'
+    )
+    return help_embed
+
+def get_opensea_help_embed():
+    help_embed = discord.Embed(
+        title='Open Sea Monitor',
+        description='Manage Open Sea Monitor',
+        color=0x00ff00
+    )
+    help_embed.add_field(
+        name='!os add [collection_name]',
+        value='Add a Collection to Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!os remove [collection_name]',
+        value='Remove a Collection from Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!os list',
+        value='List Collections that are being monitored',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!os help',
+        value='Help overview',
+        inline=False
+    )
+    help_embed.set_footer(
+        text='Open Sea Monitor'
     )
     return help_embed
 
@@ -390,6 +427,33 @@ async def check_information_command(ctx, *args):
             return await ctx.send(embed=get_check_help_embed())
     else:
         return await ctx.send(embed=get_check_help_embed())
+
+@client.command(
+    name='opensea',
+    description='Manage OpenSea Monitor',
+    brief='Manage OpenSea Monitor',
+    aliases=['os'],
+    pass_context=True
+)
+@commands.has_any_role(*staff_roles)
+async def opensea_manage_monitor_command(ctx, *args):
+    if len(args) == 0:
+        return await ctx.send(embed=get_opensea_help_embed())
+    elif len(args) == 1:
+        if args[0] == "list":
+            print("beep list stuff")
+            return 0
+    elif len(args) == 2:
+        if args[0] == 'add':
+
+            return 0
+        elif args[0] == 'remove':
+            print("doing remove stuff")
+            return 0
+        else:
+            return await ctx.send(embed=get_opensea_help_embed())
+    else:
+        return await ctx.send(embed=get_opensea_help_embed())
 
 
 client.run(discord_bot_token)
