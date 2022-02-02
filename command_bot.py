@@ -10,6 +10,7 @@ from binance_filehandler import BinanceFileHandler
 from cm_filehandler import CmFileHandler
 from cm_get_info_on_command import send_cm_information
 from magicden_filehandler import MagicEdenFileHandler
+from opensea_filehandler import OpenSeaFileHandler
 from settings import discord_bot_token
 
 
@@ -388,6 +389,54 @@ async def cm_manage_monitor_command(ctx, *args):
 
 
 @client.command(
+    name='opensea',
+    description='Manage OpenSea Monitor',
+    brief='Manage OpenSea Monitor',
+    aliases=['os'],
+    pass_context=True
+)
+@commands.has_any_role(*staff_roles)
+async def opensea_manage_monitor_command(ctx, *args):
+    if len(args) == 0:
+        return await ctx.send(embed=get_opensea_help_embed())
+    elif len(args) == 1:
+        os_fh = OpenSeaFileHandler()
+        if args[0] == 'add':
+            await ctx.send(
+                "Enter a collection name to add it to the monitor list.\n"
+                "Example:\nboredapeyachtclub"
+            )
+            answer = await await_message(ctx)
+            if answer is not None:
+                collection_name = answer.strip()
+                os_fh.add_to_list(collection_name)
+                await ctx.send(f"Added {answer} to the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        elif args[0] == 'remove':
+            await ctx.send(
+                 "Enter a collection name to add it to the monitor list.\n"
+                "Example:\nboredapeyachtclub"
+            )
+            answer = await await_message(ctx)
+            if answer is not None:
+                collection_name = answer.strip()
+                os_fh.remove_from_list(collection_name)
+                await ctx.send(f"Removed {answer} from the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        elif args[0] == 'list':
+            list_of_all_collections = os_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_opensea_help_embed())
+    else:
+        return await ctx.send(embed=get_opensea_help_embed())
+
+
+@client.command(
     name='check information',
     description='Check Collection information for Magic Eden, Binance or Candy machine',
     brief='Checking collection data',
@@ -427,33 +476,6 @@ async def check_information_command(ctx, *args):
             return await ctx.send(embed=get_check_help_embed())
     else:
         return await ctx.send(embed=get_check_help_embed())
-
-@client.command(
-    name='opensea',
-    description='Manage OpenSea Monitor',
-    brief='Manage OpenSea Monitor',
-    aliases=['os'],
-    pass_context=True
-)
-@commands.has_any_role(*staff_roles)
-async def opensea_manage_monitor_command(ctx, *args):
-    if len(args) == 0:
-        return await ctx.send(embed=get_opensea_help_embed())
-    elif len(args) == 1:
-        if args[0] == "list":
-            print("beep list stuff")
-            return 0
-    elif len(args) == 2:
-        if args[0] == 'add':
-
-            return 0
-        elif args[0] == 'remove':
-            print("doing remove stuff")
-            return 0
-        else:
-            return await ctx.send(embed=get_opensea_help_embed())
-    else:
-        return await ctx.send(embed=get_opensea_help_embed())
 
 
 client.run(discord_bot_token)

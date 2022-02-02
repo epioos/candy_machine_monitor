@@ -2,7 +2,7 @@ import json
 import os
 
 
-class BinanceFileHandler:
+class OpenSeaFileHandler:
     def __init__(self):
         self.file_location = os.path.dirname(os.path.abspath(__file__))
         self.file_name = "opensea.json"
