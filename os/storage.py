@@ -13,11 +13,3 @@ webhooks = [
     }
 ]
 
-
-c_list=[
-"boredapeyachtclub"
-]
-
-url_list = [
-"https://opensea.io/collection/creepz-shapeshifterz"
-]

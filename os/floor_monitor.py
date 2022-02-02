@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import cloudscraper
 import helheim
 
-from storage import c_list, webhooks, skip_webhook
+from storage import webhooks, skip_webhook
 
 
 class OpenSeaFloor:
@@ -31,7 +31,7 @@ class OpenSeaFloor:
         )
         current_path = os.path.dirname(os.path.realpath(__file__))
         bifrost_file = os.path.join(current_path, "bifrost-0.0.4.1-windows.x86_64.dll")
-        helheim.bifrost(self.client, bifrost_file)
+        # helheim.bifrost(self.client, bifrost_file)
 
         self.client.adapters['https://'].ssl_context.check_hostname = False
         self.client.adapters['https://'].ssl_context.verify_mode = ssl.CERT_NONE

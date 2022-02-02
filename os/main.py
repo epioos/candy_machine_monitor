@@ -10,15 +10,15 @@ import urllib
 from threading import Thread
 from urllib.request import urlopen
 
-from colorthief import ColorThief
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from ProxyManager import get_random_proxy
 from floor_monitor import start_checker
 from http_client import Client
-from storage import c_list, url_list, webhooks, skip_webhook
 import cloudscraper
 import helheim
+
+from opensea_filehandler import OpenSeaFileHandler
 
 
 class OpenSea:
@@ -41,7 +41,7 @@ class OpenSea:
 
         self.client.adapters['https://'].ssl_context.check_hostname = False
         self.client.adapters['https://'].ssl_context.verify_mode = ssl.CERT_NONE
-        #helheim.wokou(self.client, "chrome")
+        # helheim.wokou(self.client, "chrome")
         self.client.bifrost_clientHello = 'chrome'
         helheim.bifrost(self.client, "./bifrost-0.0.4.1-windows.x86_64.dll")
         self.rotate_proxy()
@@ -118,15 +118,16 @@ class OpenSea:
 
 
 def main():
-    #helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
-    #a = OpenSea()
-    #a.get_collection("boredapeyachtclub")
-    #for c in c_list:
+    helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
+    # a = OpenSea()
+    # a.get_collection("boredapeyachtclub")
+    # for c in c_list:
     #    collection_checking(c)
     # for u in url_list:
     #     sales_checking(u)
-    #for collection_name in c_list:
-    #    Thread(target=start_checker, args=(collection_name,)).start()
+    os_fh = OpenSeaFileHandler()
+    for collection_name in os_fh.read_file():
+        Thread(target=start_checker, args=(collection_name,)).start()
 
 
 if __name__ == '__main__':
