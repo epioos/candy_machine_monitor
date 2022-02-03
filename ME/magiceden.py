@@ -9,7 +9,7 @@ import helheim
 import requests
 from discord import Embed
 
-from settings import webhook_url_me
+from settings import webhook_url_me, webhook_url_me_launchpad
 
 
 class FileHandler:
@@ -112,8 +112,8 @@ class MagicEden:
         self.collection_info_url = "https://api-mainnet.magiceden.io/collections/"
         self.collection_data_url = "https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/"
 
-        self.launchpad_releases_webhook_url = webhook_url_me
-        self.launchpad_collections_webhook_url = webhook_url_me
+        self.launchpad_releases_webhook_url = webhook_url_me_launchpad
+        self.launchpad_collections_webhook_url = webhook_url_me_launchpad
         self.collection_monitor_webhook_url = webhook_url_me
 
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"

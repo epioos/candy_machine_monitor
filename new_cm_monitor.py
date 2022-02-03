@@ -40,7 +40,7 @@ def main():
                 image, description = get_data_of_uri(nft_uri)
             else:
                 image, description = None, None
-            send_discord_webhook(new_cm[0], new_cm[1], metadata, nft_name, image, description)
+            send_discord_webhook(metadata, nft_name, image, description)
         write_all_cm_to_file(all_cm_new)
         print("will sleep ")
         time.sleep(30)
