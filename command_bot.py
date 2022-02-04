@@ -255,14 +255,10 @@ async def await_message(ctx):
 async def magiceden_manage_monitor_command(ctx, *args):
     if len(args) == 0:
         return await ctx.send(embed=get_magiceden_help_embed())
-    elif len(args) == 1:
+    elif len(args) == 2:
         me_fh = MagicEdenFileHandler()
         if args[0] == 'add':
-            await ctx.send(
-                "Enter a slug to add to the monitor list.\n"
-                "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 slug = answer.strip()
                 me_fh.add_to_list(slug)
@@ -270,11 +266,8 @@ async def magiceden_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send(
-                "Enter a slug to remove it from the monitor list.\n"
-                "Example:\nhttps://www.magiceden.io/launchpad/teddy_bears_club -> teddy_bears_club"
-            )
-            answer = await await_message(ctx)
+            await ctx.send
+            answer = args[1]
             if answer is not None:
                 slug = answer.strip()
                 me_fh.remove_from_list(slug)
@@ -303,14 +296,10 @@ async def magiceden_manage_monitor_command(ctx, *args):
 async def binance_manage_monitor_command(ctx, *args):
     if len(args) == 0:
         return await ctx.send(embed=get_binance_help_embed())
-    elif len(args) == 1:
+    elif len(args) == 2:
         bn_fh = BinanceFileHandler()
         if args[0] == 'add':
-            await ctx.send(
-                "Enter a url to add a collection to the monitor list.\n"
-                "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 binance_collection_url = answer.strip()
                 bn_fh.add_to_list(binance_collection_url)
@@ -318,11 +307,7 @@ async def binance_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send(
-                "Enter a url to remove a collection to the monitor list.\n"
-                "Example:\nhttps://www.binance.com/en/nft/collection/DeRace?orderBy=list_time&orderType=-1&isBack=0&id=503115233992523776&order=list_time%40-1"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 binance_collection_url = answer.strip()
                 bn_fh.remove_from_list(binance_collection_url)
@@ -351,14 +336,10 @@ async def binance_manage_monitor_command(ctx, *args):
 async def cm_manage_monitor_command(ctx, *args):
     if len(args) == 0:
         return await ctx.send(embed=get_cm_help_embed())
-    elif len(args) == 1:
+    elif len(args) == 2:
         cm_fh = CmFileHandler()
         if args[0] == 'add':
-            await ctx.send(
-                "Enter a candy machine id to add it to the monitor list.\n"
-                "Example:\nGWe3Thk4XPyxBVKrSt3px1EfDjiBtPNUaEpv5DeX7XfY"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 cm_id = answer.strip()
                 cm_fh.add_to_list(cm_id)
@@ -366,11 +347,8 @@ async def cm_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send(
-                "Enter a candy machine id to remove it from the monitor list.\n"
-                "Example:\nGWe3Thk4XPyxBVKrSt3px1EfDjiBtPNUaEpv5DeX7XfY"
-            )
-            answer = await await_message(ctx)
+            await ctx.send
+            answer = args[1]
             if answer is not None:
                 cm_id = answer.strip()
                 cm_fh.remove_from_list(cm_id)
@@ -399,14 +377,10 @@ async def cm_manage_monitor_command(ctx, *args):
 async def opensea_manage_monitor_command(ctx, *args):
     if len(args) == 0:
         return await ctx.send(embed=get_opensea_help_embed())
-    elif len(args) == 1:
+    elif len(args) == 2:
         os_fh = OpenSeaFileHandler()
         if args[0] == 'add':
-            await ctx.send(
-                "Enter a collection name to add it to the monitor list.\n"
-                "Example:\nboredapeyachtclub"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 collection_name = answer.strip()
                 os_fh.add_to_list(collection_name)
@@ -414,11 +388,7 @@ async def opensea_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send(
-                 "Enter a collection name to add it to the monitor list.\n"
-                "Example:\nboredapeyachtclub"
-            )
-            answer = await await_message(ctx)
+            answer = args[1]
             if answer is not None:
                 collection_name = answer.strip()
                 os_fh.remove_from_list(collection_name)
