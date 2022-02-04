@@ -274,7 +274,6 @@ async def magiceden_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send
             answer = args[1]
             if answer is not None:
                 slug = answer.strip()
@@ -361,7 +360,6 @@ async def cm_manage_monitor_command(ctx, *args):
             else:
                 await ctx.send("No answer received. Cancelling.")
         elif args[0] == 'remove':
-            await ctx.send
             answer = args[1]
             if answer is not None:
                 cm_id = answer.strip()
