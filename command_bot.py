@@ -253,10 +253,18 @@ async def await_message(ctx):
 )
 @commands.has_any_role(*staff_roles)
 async def magiceden_manage_monitor_command(ctx, *args):
+    me_fh = MagicEdenFileHandler()
     if len(args) == 0:
         return await ctx.send(embed=get_magiceden_help_embed())
+    elif len(args) == 1:
+        if args[0] == 'list':
+            list_of_all_collections = me_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_magiceden_help_embed())
     elif len(args) == 2:
-        me_fh = MagicEdenFileHandler()
         if args[0] == 'add':
             answer = args[1]
             if answer is not None:
@@ -274,11 +282,6 @@ async def magiceden_manage_monitor_command(ctx, *args):
                 await ctx.send(f"Removed {answer} from the monitor list.")
             else:
                 await ctx.send("No answer received. Cancelling.")
-        elif args[0] == 'list':
-            list_of_all_collections = me_fh.read_file()
-            if len(list_of_all_collections) == 0:
-                return await ctx.send("No collections are being monitored.")
-            await ctx.send('\n'.join(list_of_all_collections))
         else:
             return await ctx.send(embed=get_magiceden_help_embed())
     else:
@@ -294,10 +297,18 @@ async def magiceden_manage_monitor_command(ctx, *args):
 )
 @commands.has_any_role(*staff_roles)
 async def binance_manage_monitor_command(ctx, *args):
+    bn_fh = BinanceFileHandler()
     if len(args) == 0:
         return await ctx.send(embed=get_binance_help_embed())
+    elif len(args) == 1:
+        if args[0] == 'list':
+            list_of_all_collections = bn_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_magiceden_help_embed())
     elif len(args) == 2:
-        bn_fh = BinanceFileHandler()
         if args[0] == 'add':
             answer = args[1]
             if answer is not None:
@@ -314,11 +325,6 @@ async def binance_manage_monitor_command(ctx, *args):
                 await ctx.send(f"Removed {answer} from the monitor list.")
             else:
                 await ctx.send("No answer received. Cancelling.")
-        elif args[0] == 'list':
-            list_of_all_collections = bn_fh.read_file()
-            if len(list_of_all_collections) == 0:
-                return await ctx.send("No collections are being monitored.")
-            await ctx.send('\n'.join(list_of_all_collections))
         else:
             return await ctx.send(embed=get_magiceden_help_embed())
     else:
@@ -334,10 +340,18 @@ async def binance_manage_monitor_command(ctx, *args):
 )
 @commands.has_any_role(*staff_roles)
 async def cm_manage_monitor_command(ctx, *args):
+    cm_fh = CmFileHandler()
     if len(args) == 0:
         return await ctx.send(embed=get_cm_help_embed())
+    if len(args) == 1:
+        if args[0] == 'list':
+            list_of_all_collections = cm_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_cm_help_embed())
     elif len(args) == 2:
-        cm_fh = CmFileHandler()
         if args[0] == 'add':
             answer = args[1]
             if answer is not None:
@@ -355,11 +369,6 @@ async def cm_manage_monitor_command(ctx, *args):
                 await ctx.send(f"Removed {answer} from the monitor list.")
             else:
                 await ctx.send("No answer received. Cancelling.")
-        elif args[0] == 'list':
-            list_of_all_collections = cm_fh.read_file()
-            if len(list_of_all_collections) == 0:
-                return await ctx.send("No collections are being monitored.")
-            await ctx.send('\n'.join(list_of_all_collections))
         else:
             return await ctx.send(embed=get_cm_help_embed())
     else:
@@ -375,10 +384,18 @@ async def cm_manage_monitor_command(ctx, *args):
 )
 @commands.has_any_role(*staff_roles)
 async def opensea_manage_monitor_command(ctx, *args):
+    os_fh = OpenSeaFileHandler()
     if len(args) == 0:
         return await ctx.send(embed=get_opensea_help_embed())
+    if len(args) == 1:
+        if args[0] == 'list':
+            list_of_all_collections = os_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_opensea_help_embed())
     elif len(args) == 2:
-        os_fh = OpenSeaFileHandler()
         if args[0] == 'add':
             answer = args[1]
             if answer is not None:
@@ -395,11 +412,6 @@ async def opensea_manage_monitor_command(ctx, *args):
                 await ctx.send(f"Removed {answer} from the monitor list.")
             else:
                 await ctx.send("No answer received. Cancelling.")
-        elif args[0] == 'list':
-            list_of_all_collections = os_fh.read_file()
-            if len(list_of_all_collections) == 0:
-                return await ctx.send("No collections are being monitored.")
-            await ctx.send('\n'.join(list_of_all_collections))
         else:
             return await ctx.send(embed=get_opensea_help_embed())
     else:
