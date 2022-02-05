@@ -30,8 +30,10 @@ class OpenSeaFloor:
             }
         )
         current_path = os.path.dirname(os.path.realpath(__file__))
-        bifrost_file = os.path.join(current_path, "bifrost-0.0.4.1-windows.x86_64.dll")
-        # helheim.bifrost(self.client, bifrost_file)
+        # bifrost_file = os.path.join(current_path, "bifrost-0.0.4.1-windows.x86_64.dll")
+        # bifrost-0.0.4-linux.x86_64
+        bifrost_file = os.path.join(current_path, "bifrost-0.0.4-linux.x86_64.so")
+        helheim.bifrost(self.client, bifrost_file)
 
         self.client.adapters['https://'].ssl_context.check_hostname = False
         self.client.adapters['https://'].ssl_context.verify_mode = ssl.CERT_NONE
@@ -115,8 +117,12 @@ class OpenSeaFloor:
             # print("hahahahahahaahah",b.text)
             # print("floor found", collection_name, b.text)
             bla = b.text
+            if str(bla).endswith("K"):
+                bla = bla.split(".")[0]
             if "<" in bla:
                 bla = 0.01
+            if str(ballaballa).endswith("K"):
+                ballaballa = ballaballa.split(".")[0]
             return {"floor": float(bla), "volume": float(ballaballa)}
         except Exception as e:
             print("error getting floor", e.__class__.__name__, e)
@@ -162,8 +168,8 @@ class OpenSeaFloor:
             _old_volume = old_floor.get("volume", "not found")
             embed = DiscordEmbed(
                 title=f"{collection_name.title()}",
-                description=f"`{_old_floor} ETH -> {floor_data['floor']} ETH`\n"
-                            f"`{_old_volume} ETH -> {floor_data['volume']} ETH`",
+                description=f"Floor: `{_old_floor} ETH -> {floor_data['floor']} ETH`\n"
+                            f"Volume: `{_old_volume} ETH -> {floor_data['volume']} ETH`",
                 color='00FFA3',
                 url=f"https://opensea.io/collection/{collection_name}"
             )
