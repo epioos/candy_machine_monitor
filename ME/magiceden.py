@@ -10,7 +10,7 @@ import helheim
 import requests
 from discord import Embed
 
-from settings import webhook_url_me, webhook_url_me_launchpad
+from settings import webhook_url_me, webhook_url_me_launchpad, webhook_url_me_interval
 
 
 class FileHandler:
@@ -143,6 +143,7 @@ class MagicEden:
         self.launchpad_releases_webhook_url = webhook_url_me_launchpad
         self.launchpad_collections_webhook_url = webhook_url_me_launchpad
         self.collection_monitor_webhook_url = webhook_url_me
+        self.collection_interval_monitor_webhook_url = webhook_url_me_interval
 
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 
@@ -624,7 +625,7 @@ class MagicEden:
                 text=None,
                 url=f'https://magiceden.io/collections?type=popular',
                 image=image_url,
-                target_webhook="https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL",
+                target_webhook=self.collection_interval_monitor_webhook_url,
                 # self.collection_monitor_webhook_url,
                 fields=new_todo,
             )
@@ -778,7 +779,6 @@ class MagicEden:
         else:
             return None
 
-
     def compare_new_listings_with_csv(self, new_data_response):
         minttoken_list = self.file_handler.read_ranking_from_csv()
         found_minttoken_list = self.file_handler.get_ranking_from_file()
@@ -801,5 +801,5 @@ class MagicEden:
                         "Price": f'{str(line["price"])} SOL',
                     }
                 )
-            else:
-                print("nothing changed")
+            # else:
+            #     print("nothing changed")

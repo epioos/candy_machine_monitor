@@ -27,7 +27,10 @@ def main():
         collection_names = ["quantum_traders", "solstein"]
         for collection_name in collection_names:
             new_data_response = me_monitor.scrape_new_listings_form_csv(collection_name)
+            if new_data_response.get("results", None) is None:
+                continue
             me_monitor.compare_new_listings_with_csv(new_data_response)
+
 
 if __name__ == "__main__":
     helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
