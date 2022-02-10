@@ -2,18 +2,17 @@
 import datetime
 import json
 import os
+import random
 import time
 
 import requests
-from opensea import OpenseaAPI  # pip install opensea-api
 
 from opensea_filehandler import OpenSeaFileHandler
 
 
 class OpenSea:
     def __init__(self):
-        self.api = OpenseaAPI(apikey="88dadb89c3404dfea8a0ee31f95b11cd")
-
+        self.api_key = "88dadb89c3404dfea8a0ee31f95b11cd"
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 
         self.webhook_url = "https://discord.com/api/webhooks/938528705221910548/MiqUFWTIyV2xX1_0yvdxSn142ExFf0RdgrpadKo9ucxi4sSxJtOxRVuEmZ1S8uUFFZyi"
@@ -26,9 +25,46 @@ class OpenSea:
             os.path.dirname(os.path.abspath(__file__)),
             "collections"
         )
+        self.proxy_list = self.get_proxies()
+        self.rotate_proxy()
+
+    def get_proxies(self):
+        file_name = "proxies.txt"
+        current_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            file_name
+        )
+        if not os.path.isfile(current_file_path):
+            print("proxies file not found")
+            return []
+        with open(current_file_path, "r") as file:
+            return file.read().splitlines()
+
+    def rotate_proxy(self):
+        try:
+            proxy = random.choice(self.proxy_list).split(":")
+            proxy_dict = {
+                "http": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}",
+                "https": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
+            }
+        except IndexError:
+            proxy_dict = None
+        print(f"Using proxy: {proxy_dict}")
+        self.proxy = proxy_dict
 
     def get_collection_info(self, collection_slug: str) -> dict:
-        result = self.api.collection(collection_slug=collection_slug)
+        response = requests.get(
+            url=f"https://api.opensea.io/api/v1/collection/{collection_slug}",
+            headers={
+                'User-Agent': 'Chrome API',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': '*/*',
+                'Connection': 'keep-alive',
+                'X-API-KEY': self.api_key
+            },
+            proxies=self.proxy,
+        )
+        result = response.json()
         if result.get("collection", None) is None:
             print(result)
         return result
@@ -58,34 +94,20 @@ class OpenSea:
         print(f"Loaded collection info from {collection_slug}")
         return collection_info
 
-    def get_all_assets_from_collection(self, collection_slug: str, **kwargs) -> list:
-        total_supply = kwargs.get("total_supply", 50)
-        results = []
-        offset = 0
-        while offset < total_supply:
-            time.sleep(1)
-            result = self.api.assets(collection=collection_slug, limit=50, offset=offset)
-            assets_found = result.get("assets", None)
-            if assets_found is None:
-                print(f"No assets found for collection: {collection_slug}", result)
-                continue
-            results.extend(assets_found)
-            print(f"Found {len(assets_found)} assets")
-            offset += 50
-            print(f"Found a total of {len(results)} assets")
-        # print(json.dumps(result, indent=4))
-        return results
-
     def get_events(self, collection_slug: str, **kwargs):
-        limit = kwargs.get("limit", 10)
-        offset = kwargs.get("offset", 0)
-        event_type = kwargs.get("event_type", None)
-        result = self.api.events(
-            collection_slug=collection_slug,
-            limit=limit,
-            offset=offset,
-            event_type=event_type,
+        response = requests.get(
+            url=f"https://api.opensea.io/api/v1/events?collection_slug={collection_slug}&event_type=created&only_opensea=False&offset=0&limit=10",
+            headers={
+                'User-Agent': 'Chrome API',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': '*/*',
+                'Connection': 'keep-alive',
+                'X-API-KEY': self.api_key
+            },
+            proxies=self.proxy,
         )
+        print("Got events", response.status_code, response.reason, response.url)
+        result = response.json()
         return result
 
     def parse_asset(self, listing: dict):
@@ -269,6 +291,7 @@ class OpenSea:
                         self.save_asset(parsed_asset)
                     else:
                         print("Asset has been updated recently, not sending webhook")
+            time.sleep(0.25)
 
     def check_collection(self, collection_slug: str):
         print(f"Checking collection: {collection_slug}")
@@ -321,6 +344,7 @@ def main():
                 # asset_contract_address = collection_stats["collection"]["primary_asset_contracts"][0]["address"]
             except Exception as e:
                 print("failed getting collection info", e, e.__class__.__name__, collection_slug)
+                opensea.rotate_proxy()
             else:
                 try:
                     listings = opensea.get_events(
@@ -332,6 +356,8 @@ def main():
                         opensea.check_new_listings(listings, floor_price=floor_price)
                 except Exception as e:
                     print("failed getting listings", e, e.__class__.__name__, collection_slug)
+                    opensea.rotate_proxy()
+            time.sleep(0.25)
 
 
 if __name__ == "__main__":
