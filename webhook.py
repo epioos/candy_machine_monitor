@@ -44,7 +44,7 @@ def send_discord_webhook(metadata, nft_name, image, description):
     embed.add_embed_field(name='available items', value=cm_items_available_discord, inline=False)
     embed.add_embed_field(name='price', value=cm_price_discord, inline=False)
     embed.add_embed_field(name='go live', value=cm_timestamp_discord, inline=False)
-    embed.add_embed_field(name='address', value=cm_address_discord, inline=False)
+    #embed.add_embed_field(name='address', value=cm_address_discord, inline=False)
     embed.add_embed_field(name='machine id', value=cm_machine_id_discord, inline=False)
     embed.set_footer(text='MetaMint', icon_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
     embed.set_timestamp()
