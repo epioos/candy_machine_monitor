@@ -52,7 +52,7 @@ class OpenSea:
         print(f"Using proxy: {proxy_dict}")
         self.proxy = proxy_dict
 
-    def get_collection_info(self, collection_slug: str) -> dict:
+    def get_collection_info(self, collection_slug: str) -> [dict, None]:
         response = requests.get(
             url=f"https://api.opensea.io/api/v1/collection/{collection_slug}",
             headers={
@@ -63,10 +63,13 @@ class OpenSea:
                 'X-API-KEY': self.api_key
             },
             proxies=self.proxy,
+            timeout=30
         )
+        print("collection info response", collection_slug, response.status_code, response.reason, response.url)
         result = response.json()
         if result.get("collection", None) is None:
             print(result)
+            return None
         return result
 
     def save_collection_info(self, collection_slug: str, collection_info: dict) -> None:
@@ -105,6 +108,7 @@ class OpenSea:
                 'X-API-KEY': self.api_key
             },
             proxies=self.proxy,
+            timeout=30
         )
         print("Got events", response.status_code, response.reason, response.url)
         result = response.json()
