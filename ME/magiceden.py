@@ -4,6 +4,7 @@ import os
 import random
 import time
 
+import csv
 import cloudscraper
 import helheim
 import requests
@@ -20,6 +21,7 @@ class FileHandler:
         self.collection_data_folder_path = os.path.join(self.file_path, "collection_data")
         self.collection_info_folder_path = os.path.join(self.file_path, "collection_info")
         self.collections_interval_folder_path = os.path.join(self.file_path, "collections_interval")
+        self.ranking_folder_path = os.path.join(self.file_path, "ranking")
         self.create_folders()
 
     def get_proxies(self):
@@ -42,6 +44,8 @@ class FileHandler:
             os.makedirs(self.collection_info_folder_path)
         if not os.path.exists(self.collections_interval_folder_path):
             os.makedirs(self.collections_interval_folder_path)
+        if not os.path.exists(self.ranking_folder_path):
+            os.mkdir(self.ranking_folder_path)
 
     def save_collection_to_file(self, collection_id, collection_data):
         collection_file_path = os.path.join(self.collections_folder_path, collection_id + ".json")
@@ -101,6 +105,30 @@ class FileHandler:
         if not os.path.isfile(collection_interval_file_path):
             return None
         with open(collection_interval_file_path, "r") as collection_interval_file:
+            return json.loads(collection_interval_file.read())
+
+    def read_ranking_from_csv(self):
+        mint_token_dict = {}
+        with open('ranking.csv', newline='\n') as csvfile:
+            spamreader = csv.DictReader(csvfile, delimiter=',')
+            for row in spamreader:
+                # mint_token_list.append((row["Token Mint Address"], row["Total Rank"]))
+                mint_token_dict[row["Token Mint Address"]] = row["Total Rank"]
+        return mint_token_dict
+
+    def append_ranking(self, mint_address):
+        ranking_file_path = os.path.join(self.ranking_folder_path, "ranking_found" + ".json")
+        with open(ranking_file_path, "r") as reading_file:
+            data = json.load(reading_file)
+        data["mint_addresses"].append(mint_address)
+        with open(ranking_file_path, "w") as writing_file:
+            writing_file.write(json.dumps(data, indent=4))
+
+    def get_ranking_from_file(self):
+        ranking_file_path = os.path.join(self.ranking_folder_path, "ranking_found" + ".json")
+        if not os.path.isfile(ranking_file_path):
+            return None
+        with open(ranking_file_path, "r") as collection_interval_file:
             return json.loads(collection_interval_file.read())
 
 
@@ -729,3 +757,49 @@ class MagicEden:
             retry_after = response.json()["retry_after"]
             time.sleep((retry_after // 1000) + 1)
             self.send_webhook(event, text, author, url, image, target_webhook, fields)
+
+    def scrape_new_listings_form_csv(self, collection_name):
+        headers = {
+            'authority': 'api-mainnet.magiceden.io',
+            'cache-control': 'max-age=0'
+        }
+
+        url = f'https://api-mainnet.magiceden.io/rpc/getListedNFTsByQuery?q=%7B%22%24match%22%3A%7B%22collectionSymbol%22%3A%22{collection_name}%22%7D%2C%22%24sort%22%3A%7B%22createdAt%22%3A-1%7D%2C%22%24skip%22%3A0%2C%22%24limit%22%3A10%7D'
+        print(url)
+        response = self.session.request(
+            method="GET",
+            url=url,
+            headers=headers,
+            # proxies=self.proxy,
+            timeout=30,
+        )
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+
+    def compare_new_listings_with_csv(self, new_data_response):
+        minttoken_list = self.file_handler.read_ranking_from_csv()
+        found_minttoken_list = self.file_handler.get_ranking_from_file()
+        for line in new_data_response["results"]:
+            if minttoken_list.get(line["mintAddress"], None) is not None and line["mintAddress"] not in \
+                    found_minttoken_list["mint_addresses"]:
+                self.file_handler.append_ranking(line["mintAddress"])
+                displayed_rank = minttoken_list[line["mintAddress"]]
+                # new item found from mint token list
+                # todo webhook senden
+                self.send_webhook(
+                    event=line["title"],
+                    text=line["content"],
+                    url=f"https://magiceden.io/item-details/{line['mintAddress']}",
+                    author="ME Special Item found",
+                    image=line.get("img", None),
+                    target_webhook=self.launchpad_collections_webhook_url,
+                    fields={
+                        "Rank": displayed_rank,
+                        "Price": f'{str(line["price"])} SOL',
+                    }
+                )
+            else:
+                print("nothing changed")
