@@ -26,10 +26,13 @@ def main():
             print("interval monitor not ready")
         collection_names = ["quantum_traders", "solstein"]
         for collection_name in collection_names:
-            new_data_response = me_monitor.scrape_new_listings_form_csv(collection_name)
-            if new_data_response.get("results", None) is None:
-                continue
-            me_monitor.compare_new_listings_with_csv(new_data_response)
+            try:
+                new_data_response = me_monitor.scrape_new_listings_form_csv(collection_name)
+                if new_data_response.get("results", None) is None:
+                    continue
+                me_monitor.compare_new_listings_with_csv(new_data_response)
+            except Exception as e:
+                print("special monitor error", e)
 
 
 if __name__ == "__main__":

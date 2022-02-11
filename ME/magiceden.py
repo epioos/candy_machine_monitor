@@ -11,6 +11,7 @@ import requests
 from discord import Embed
 
 from settings import webhook_url_me, webhook_url_me_launchpad, webhook_url_me_interval
+from tls_client import TlsClient
 
 
 class FileHandler:
@@ -149,17 +150,7 @@ class MagicEden:
 
         self.file_handler = FileHandler()
 
-        self.session = cloudscraper.create_scraper(
-            browser={
-                'browser': 'chrome',
-                'mobile': False,
-                'platform': 'windows'
-            },
-            requestPostHook=self.injection,
-            captcha={
-                'provider': 'vanaheim'
-            }
-        )
+        self.session = TlsClient()
 
         self.proxy_list = self.file_handler.get_proxies()
         self.proxy = None
@@ -179,10 +170,11 @@ class MagicEden:
                 "http": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}",
                 "https": f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
             }
-            self.session.proxies.update(proxy_dict)
+            # self.session.proxies.update(proxy_dict)
+            proxy_dict = f"http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}"
         except IndexError:
             proxy_dict = None
-            self.session.proxies.update(None)
+            # self.session.proxies.update(None)
         try:
             self.session.cookies.clear()
         except:
@@ -208,7 +200,7 @@ class MagicEden:
             method="GET",
             url=self.upcoming_launches_url,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -230,7 +222,7 @@ class MagicEden:
             method="GET",
             url=self.launchpad_collections_url,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -252,7 +244,7 @@ class MagicEden:
             method="GET",
             url=self.collection_info_url + slug,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -274,7 +266,7 @@ class MagicEden:
             method="GET",
             url=self.collection_data_url + slug,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         # print(response.status_code, response.text)
@@ -297,7 +289,7 @@ class MagicEden:
             method="GET",
             url=self.all_collections_data_url,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
@@ -771,7 +763,7 @@ class MagicEden:
             method="GET",
             url=url,
             headers=headers,
-            # proxies=self.proxy,
+            proxy=self.proxy,
             timeout=30,
         )
         if response.status_code == 200:
