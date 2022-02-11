@@ -339,6 +339,7 @@ def main():
     opensea_fh = OpenSeaFileHandler()
     while 1:
         for collection_slug in opensea_fh.read_file():
+            print("checking", collection_slug)
             try:
                 collection_stats = opensea.check_collection(collection_slug)
                 # print(f"Collection stats: {json.dumps(collection_stats, indent=4)}")
