@@ -15,7 +15,10 @@ class OpenSea:
         self.api_key = "88dadb89c3404dfea8a0ee31f95b11cd"
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 
-        self.webhook_url = "https://discord.com/api/webhooks/938528705221910548/MiqUFWTIyV2xX1_0yvdxSn142ExFf0RdgrpadKo9ucxi4sSxJtOxRVuEmZ1S8uUFFZyi"
+        self.webhook_url_list = [
+            "https://discord.com/api/webhooks/938528705221910548/MiqUFWTIyV2xX1_0yvdxSn142ExFf0RdgrpadKo9ucxi4sSxJtOxRVuEmZ1S8uUFFZyi",
+            "https://discord.com/api/webhooks/943989175269589042/2qNcwhC1BhL_ThvROubDWg2wDCGsRO6GedJNPVRrkQLt3j1evAgxCO_QqS6TrBSorJyn"
+        ]
 
         self.asset_folder_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -258,40 +261,44 @@ class OpenSea:
                 print(f"Price is below floor price: {parsed_asset['price']}")
                 if asset is None:
                     print("Asset is not in database, adding it")
-                    self.send_webhook(
-                        f"{parsed_asset['collection_name']}#{parsed_asset['token_id']}",
-                        f"This Asset has been listed below Floor Price",
-                        author=f"OpenSea Steals Monitor",
-                        url=parsed_asset.get("link", None),
-                        image=parsed_asset.get("image", None),
-                        target_webhook=self.webhook_url,
-                        fields={
-                            "Listed Price": f"{parsed_asset['real_price']}",
-                            "Floor Price": f"{floor_price} ETH"
-                        }
-                    )
-                    self.save_asset(parsed_asset)
-                elif parsed_asset['real_price'] != asset['real_price']:
-                    print(f"Price has changed: {parsed_asset['real_price']}")
-                    last_updated_from_timestamp = datetime.datetime.fromtimestamp(
-                        asset.get("last_updated", 0)
-                    )
-                    future_timestamp = (datetime.datetime.now() + datetime.timedelta(minutes=5))
-                    print(last_updated_from_timestamp)
-                    print(future_timestamp)
-                    if last_updated_from_timestamp > future_timestamp:
+                    for wb_url in self.webhook_url_list:
                         self.send_webhook(
                             f"{parsed_asset['collection_name']}#{parsed_asset['token_id']}",
                             f"This Asset has been listed below Floor Price",
                             author=f"OpenSea Steals Monitor",
                             url=parsed_asset.get("link", None),
                             image=parsed_asset.get("image", None),
-                            target_webhook=self.webhook_url,
+                            target_webhook=wb_url,
                             fields={
                                 "Listed Price": f"{parsed_asset['real_price']}",
                                 "Floor Price": f"{floor_price} ETH"
                             }
                         )
+                    self.save_asset(parsed_asset)
+                elif parsed_asset['price'] != asset['price']:
+                    print(f"Price has changed: {parsed_asset['real_price']}")
+                    last_updated_from_timestamp = datetime.datetime.fromtimestamp(
+                        asset.get("last_updated", 0)
+                    )
+                    # check if timestamp is older than 5 minutes
+                    # print(future_timestamp)
+                    # parsed_asset['real_price'] != asset['real_price']
+                    # if last_updated_from_timestamp > future_timestamp:
+                    # if ts_to_check < ts_now:
+                    if (datetime.datetime.now() - last_updated_from_timestamp).total_seconds() > 60 * 5:
+                        for wb_url in self.webhook_url_list:
+                            self.send_webhook(
+                                f"{parsed_asset['collection_name']}#{parsed_asset['token_id']}",
+                                f"This Asset has been listed below Floor Price",
+                                author=f"OpenSea Steals Monitor",
+                                url=parsed_asset.get("link", None),
+                                image=parsed_asset.get("image", None),
+                                target_webhook=wb_url,
+                                fields={
+                                    "Listed Price": f"{parsed_asset['real_price']}",
+                                    "Floor Price": f"{floor_price} ETH"
+                                }
+                            )
                         self.save_asset(parsed_asset)
                     else:
                         print("Asset has been updated recently, not sending webhook")
@@ -314,19 +321,18 @@ class OpenSea:
             last_updated_from_timestamp = datetime.datetime.fromtimestamp(
                 old_collection_info.get("last_updated", 0)
             )
-            future_timestamp = (datetime.datetime.now() + datetime.timedelta(minutes=15))
-            print(last_updated_from_timestamp)
-            print(future_timestamp)
-            if last_updated_from_timestamp > future_timestamp:
-                self.send_webhook(
-                    f"{collection_info['collection']['name']}",
-                    f"Floor price changed: {old_collection_info['collection']['stats']['floor_price']} ETH -> {collection_info['collection']['stats']['floor_price']} ETH",
-                    author=f"OpenSea Collection Monitor",
-                    url=f"https://opensea.io/collection/{collection_slug}",
-                    image=collection_info["collection"]["image_url"],
-                    target_webhook=self.webhook_url,
-                    fields={}
-                )
+            if (datetime.datetime.now() - last_updated_from_timestamp).total_seconds() > 60 * 15:
+                for wb_url in self.webhook_url_list:
+                    self.send_webhook(
+                        f"{collection_info['collection']['name']}",
+                        f"Floor price changed: {old_collection_info['collection']['stats']['floor_price']} ETH "
+                        f"-> {collection_info['collection']['stats']['floor_price']} ETH",
+                        author=f"OpenSea Collection Monitor",
+                        url=f"https://opensea.io/collection/{collection_slug}",
+                        image=collection_info["collection"]["image_url"],
+                        target_webhook=wb_url,
+                        fields={}
+                    )
                 self.save_collection_info(collection_slug, collection_info)
                 print(f"Updated collection info: {collection_slug}")
             else:
@@ -351,6 +357,7 @@ def main():
                 print("failed getting collection info", e, e.__class__.__name__, collection_slug)
                 opensea.rotate_proxy()
             else:
+                # continue
                 try:
                     listings = opensea.get_events(
                         collection_slug=collection_slug,
