@@ -51,7 +51,7 @@ class NiftiyGateway:
 
         self.logo_url = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
 
-        self.webhook_url = "https://discord.com/api/webhooks/933135796884623420/c7qWgRRfDTqteyTaxs2YRKZwqtumi0ZDNTsz5PgnKtqNoTZaI9QiMGbn8GhlMdASnDQL"
+        self.webhook_url = "https://discord.com/api/webhooks/943907674234449940/1gkTICojW9r_2prLQhmlKBoDCp9J7XBQMQo7nFXYXTUmxGtQJjMw3ZBLVdrY3fcN0Eic"
 
         self.file_handler = FileHandler()
 
@@ -165,7 +165,6 @@ class NiftiyGateway:
                 # new project found
                 print("new project")
                 for exhibition in release["exhibitions"]:
-                    # todo send webhook
                     print("ex", exhibition)
                     wb_exhibition = exhibition.copy()
                     del wb_exhibition["image"]
@@ -271,11 +270,14 @@ class NiftiyGateway:
 def main():
     ng = NiftiyGateway()
     while 1:
-        verified_release_data = ng.get_api_data(ng.verified_api_url)
-        ng.process_release_data(verified_release_data, verified=True)
-        curated_release_data = ng.get_api_data(ng.curated_api_url)
-        ng.process_release_data(curated_release_data, verified=False)
-        time.sleep(15)
+        try:
+            verified_release_data = ng.get_api_data(ng.verified_api_url)
+            ng.process_release_data(verified_release_data, verified=True)
+            curated_release_data = ng.get_api_data(ng.curated_api_url)
+            ng.process_release_data(curated_release_data, verified=False)
+            time.sleep(15)
+        except Exception as e:
+            print("error - ", e)
 
 
 if __name__ == '__main__':
