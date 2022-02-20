@@ -1,7 +1,10 @@
 import asyncio
+import datetime
+import json
+import os
 
 import discord
-import helheim
+# import helheim
 from discord.ext import commands
 
 from ME.magiceden import MagicEden
@@ -9,10 +12,10 @@ from binance.get_information_on_command import send_binance_information
 from binance_filehandler import BinanceFileHandler
 from cm_filehandler import CmFileHandler
 from cm_get_info_on_command import send_cm_information
+from eth_stuff.api import Backend
 from magicden_filehandler import MagicEdenFileHandler
 from opensea_filehandler import OpenSeaFileHandler
 from settings import discord_bot_token
-
 
 # intents = discord.Intents.default()
 # intents.members = True
@@ -26,7 +29,8 @@ staff_roles = [
     913185856326631516,  # mod
 ]
 
-helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
+
+# helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
 
 
 @client.event
@@ -199,6 +203,7 @@ def get_cm_help_embed():
         text='Candy machine Monitor'
     )
     return help_embed
+
 
 def get_opensea_help_embed():
     help_embed = discord.Embed(
@@ -417,10 +422,9 @@ async def opensea_manage_monitor_command(ctx, *args):
 
 
 @client.command(
-    name='check information',
+    name='check',
     description='Check Collection information for Magic Eden, Binance or Candy machine',
     brief='Checking collection data',
-    aliases=['check'],
     pass_context=True
 )
 async def check_information_command(ctx, *args):
@@ -456,6 +460,104 @@ async def check_information_command(ctx, *args):
             return await ctx.send(embed=get_check_help_embed())
     else:
         return await ctx.send(embed=get_check_help_embed())
+
+
+@client.command(
+    name='eth',
+    description='Check ETH Contract information',
+    brief='Check ETH Contract information',
+    aliases=['contract', 'ethereum'],
+    pass_context=True
+)
+async def eth_command(ctx, contract_address):
+    backend = Backend()
+    target_contract_address = contract_address.strip()
+    contract_checksum = backend.get_checksum(target_contract_address)
+    contract_abi = backend.get_contract_abi_from_etherscan(contract_checksum)
+    contract = backend.web3.eth.contract(address=contract_checksum, abi=contract_abi)
+    all_events = backend.get_events_from_contract(contract)
+    # print(all_events)
+    all_functions = backend.get_functions_from_contract(contract)
+    # print(all_functions)
+    if all_functions is not None:
+        current_work_dir = os.getcwd()
+        func_file = os.path.join(current_work_dir, f'functions_{contract_checksum}.json')
+        with open(func_file, 'w') as f:
+            json.dump(all_functions, f, indent=4)
+    contract_creator = backend.get_contract_creator(contract)
+    # print(contract_creator)
+    possible_flip_sale_functions = backend.get_possible_flip_sale_functions(all_functions)
+    # print(possible_flip_sale_functions)
+    possible_mint_functions = backend.get_possible_mint_functions(all_functions)
+
+    pending_transactions = backend.get_pending_transactions_for_address(contract_checksum)
+    # print(possible_mint_functions)
+    # await ctx.send(f"Contract creator: {contract_creator}")
+    # await ctx.send(f"Contract address: {contract_checksum}")
+    # await ctx.send(f"Contract ABI: {contract_abi}")
+    # await ctx.send(f"Events: {all_events}")
+    # await ctx.send(f"Functions: {all_functions}")
+    if all_functions is not None:
+        embed = discord.Embed(
+            title=f"ETH Contract {contract_checksum}",
+            description=f"**Contract creator**: [{contract_creator}](https://etherscan.io/address/{contract_creator})\n"
+                        f"**Possible Mint Functions:** {', '.join(possible_mint_functions)}\n"
+                        f"**Possible Flip Sale Functions:** {', '.join(possible_flip_sale_functions)}\n"
+                        f"**Events**: {', '.join(all_events)}\n"
+                        f"**Pending Transactions**: {pending_transactions}\n",
+            color=0x83eaca,
+            url=f"https://etherscan.io/address/{contract_address}"
+        )
+        embed.set_footer(
+            text=f"MetaMint",
+            icon_url="https://media.discordapp.net/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
+        )
+        embed.timestamp = datetime.datetime.now()
+
+        batch_size = 8
+        read_functions = []
+        write_functions = []
+        for i in range(0, len(all_functions), batch_size):
+            todo = all_functions[i:i + batch_size]
+            funcs_str = ""
+            for x in todo:
+                function_name = x['name']
+                inputs = x['inputs']
+                outputs = x['outputs']
+                inputs_str = ""
+                outputs_str = ""
+                for y in inputs:
+                    inputs_str += f"{function_name} ({y['type']}), "
+                if len(outputs) > 0:
+                    for z in outputs:
+                        outputs_str += f"{function_name}({z['type']}), "
+                funcs_str += f"`{function_name}({inputs_str[:-2]})`"
+                if len(outputs) > 0:
+                    read_functions.append(f"`{function_name}({inputs_str[:-2]})`")
+                else:
+                    write_functions.append(f"`{function_name}({inputs_str[:-2]})`")
+
+        for i in range(0, len(read_functions), batch_size):
+            todo = read_functions[i:i + batch_size]
+            read_str = ""
+            for x in todo:
+                read_str += f"{x}\n"
+            embed.add_field(name=f"Read Functions {i}-{i + batch_size}", value=read_str, inline=False)
+
+        for i in range(0, len(write_functions), batch_size):
+            todo = write_functions[i:i + batch_size]
+            write_str = ""
+            for x in todo:
+                write_str += f"{x}\n"
+            embed.add_field(name=f"Write Functions {i}-{i + batch_size}", value=write_str, inline=False)
+        # embed.add_field(name=f"Functions {i}-{i + batch_size}", value=funcs_str, inline=False)
+        current_work_dir = os.getcwd()
+        func_file = os.path.join(current_work_dir, f'functions_{contract_checksum}.json')
+        await ctx.send(
+            file=discord.File(func_file),
+            embed=embed
+        )
+        os.remove(func_file)
 
 
 client.run(discord_bot_token)
