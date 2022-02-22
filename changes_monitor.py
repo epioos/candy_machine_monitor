@@ -2,8 +2,11 @@ import json
 import os.path
 import time
 
+from cms_nft import get_cms_nft
+from get_all_cm import compare_for_new_cm
 from webhook_monitor import send_minted_counter, send_new_unmited_nfts
 from discord_webhook import DiscordWebhook, DiscordEmbed
+from cms_nft import get_cms_nft, get_data_of_uri
 
 from cm_change_files import read_from_file
 from settings import webhook_url_cm
@@ -54,23 +57,28 @@ def read_metadata_from_file(cm_id):
         print("error reading metadata to file", e)
         return None
 
+
 def compare_metadata(old_metadata, new_metadata):
     if old_metadata["items_available"] != new_metadata["items_available"]:
         return old_metadata["items_available"], new_metadata["items_available"]
     else:
         return None, None
 
-def send_metadata_change_to_discord(cm_id, old_availabe, new_available):
+
+def send_metadata_change_to_discord(cm_id, old_availabe, new_available, name, image):
     webhook = DiscordWebhook(url=webhook_url_cm)
     if old_availabe is None:
         old_availabe = "not found"
-    embed = DiscordEmbed(title='Available items changed', description=cm_id, color='03b2f8')
-    embed.add_embed_field(name='Stock change', value=f"{old_availabe} -> {new_available}")
+    embed = DiscordEmbed(title='Available items changed', description=name, color='03b2f8')
+    embed.add_embed_field(name='CD ID', value=cm_id, inline=False)
+    embed.add_embed_field(name='Stock change', value=f"{old_availabe} -> {new_available}", inline=False)
+    embed.thumbnail(url=image)
 
     # add embed object to webhook
     webhook.add_embed(embed)
 
     response = webhook.execute()
+
 
 def main():
     while 1:
@@ -95,11 +103,22 @@ def main():
             old_availabe, new_available = compare_metadata(old_metadata, new_metadata)
             if old_availabe is None and new_available is None:
                 continue
-            send_metadata_change_to_discord(cm_id, old_availabe, new_available)
+            cms_nfts = get_cms_nft(cm_id, version)
+            nft_name = "not found"
+            if cms_nfts:
+                try:
+                    nft_name = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["name"]
+                    nft_uri = cms_nfts["minted_nfts"][0]["nft_metadata"]["data"]["uri"]
+                except:
+                    nft_name = cms_nfts["all_nfts"][0]["name"]
+                    nft_uri = cms_nfts["all_nfts"][0]["uri"]
+                image, description = get_data_of_uri(nft_uri)
+            else:
+                image, description = None, None
+            send_metadata_change_to_discord(cm_id, old_availabe, new_available, nft_name, image)
             save_metadata_to_file(new_metadata)
         time.sleep(60)
 
 
 if __name__ == '__main__':
     main()
-
