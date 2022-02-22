@@ -5,6 +5,24 @@ from settings import webhook_url_cm
 def send_discord_webhook(metadata, nft_name, image, description):
     webhook = DiscordWebhook(url=webhook_url_cm, avatar_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
     cm_timestamp = metadata.get("go_live_date", None)
+
+    _gatekeeper_on_of = metadata["gatekeeper"]
+    if _gatekeeper_on_of["gatekeeper_network"] == None:
+        gatekeeper_on_of = "off"
+    else:
+        gatekeeper_on_of = "on"
+
+    _whitelist = metadata["whitelist"]
+    if _whitelist["mint"] == None:
+        whitelist = "on"
+    else:
+        whitelist = "off"
+
+    if  metadata["wallet"] is "":
+        creator_wallet = "not found"
+    else:
+        creator_wallet = metadata["wallet"]
+
     if cm_timestamp is not None:
         cm_timestamp = int(cm_timestamp)
         cm_timestamp_discord = f"<t:{cm_timestamp}:R>"
@@ -45,7 +63,10 @@ def send_discord_webhook(metadata, nft_name, image, description):
     embed.add_embed_field(name='price', value=cm_price_discord, inline=False)
     embed.add_embed_field(name='go live', value=cm_timestamp_discord, inline=False)
     #embed.add_embed_field(name='address', value=cm_address_discord, inline=False)
-    embed.add_embed_field(name='machine id', value=cm_machine_id_discord, inline=False)
+    embed.add_embed_field(name='CM ID', value=cm_machine_id_discord, inline=False)
+    embed.add_embed_field(name='Creator Wallet', value=creator_wallet, inline=False)
+    embed.add_embed_field(name='Whitelist', value=whitelist, inline=False)
+    embed.add_embed_field(name='Gatekeeper', value=gatekeeper_on_of, inline=False)
     embed.set_footer(text='MetaMint', icon_url="https://cdn.discordapp.com/icons/907432664863215708/966864c79810ea1a8ba787ad4bef904a.webp?size=96")
     embed.set_timestamp()
     if image is not None:
