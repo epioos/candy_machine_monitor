@@ -60,19 +60,48 @@ def read_metadata_from_file(cm_id):
 
 def compare_metadata(old_metadata, new_metadata):
     if old_metadata["items_available"] != new_metadata["items_available"]:
-        return old_metadata["items_available"], new_metadata["items_available"]
+        what_changed = "items"
+        return old_metadata["items_available"], new_metadata["items_available"], what_changed
+    elif old_metadata["gatekeeper"]["gatekeeper_network"] != new_metadata["gatekeeper"]["gatekeeper_network"]:
+        what_changed = "gatekeeper"
+        if new_metadata["gatekeeper"]["gatekeeper_network"] is None:
+            gatekeeper = "off"
+        else:
+            gatekeeper = "on"
+        return gatekeeper, None, what_changed
+    elif old_metadata["whitelist"]["mint"] != new_metadata["whitelist"]["mint"]:
+        what_changed = "whitelist"
+        if new_metadata["whitelist"]["mint"] is None:
+            whitelist = "off"
+        else:
+            whitelist = "on"
+        return whitelist, None, what_changed
     else:
-        return None, None
+        return None, None, None
 
 
-def send_metadata_change_to_discord(cm_id, old_availabe, new_available, name, image):
+
+def send_metadata_change_to_discord(cm_id, return_one, return_two, name, image, what_changed):
+    title = "Something changed"
+    if what_changed == "items":
+        title = "Available items changed"
+    elif what_changed == "whitelist":
+        title = "Whitelist status changed"
+    elif what_changed == "gatekeeper":
+        title = "Gatekeeper status changed"
     webhook = DiscordWebhook(url=webhook_url_cm)
-    if old_availabe is None:
-        old_availabe = "not found"
-    embed = DiscordEmbed(title='Available items changed', description=name, color='03b2f8')
-    embed.add_embed_field(name='CD ID', value=cm_id, inline=False)
-    embed.add_embed_field(name='Stock change', value=f"{old_availabe} -> {new_available}", inline=False)
-    embed.thumbnail(url=image)
+    if return_one is None:
+        return_one = "not found"
+    embed = DiscordEmbed(title=title, description=name, color='03b2f8')
+    embed.add_embed_field(name='CM ID', value=cm_id, inline=False)
+    if what_changed == "items":
+        embed.add_embed_field(name='Stock change', value=f"{return_one} -> {return_two}", inline=False)
+    elif what_changed == "whitelist":
+        embed.add_embed_field(name='Whitelist status', value=return_one, inline=False)
+    elif what_changed == "gatekeeper":
+        embed.add_embed_field(name='Gatekeeper status', value=return_one, inline=False)
+    if image is not None:
+        embed.set_thumbnail(url=image)
 
     # add embed object to webhook
     webhook.add_embed(embed)
@@ -96,12 +125,8 @@ def main():
             if old_metadata is None:
                 save_metadata_to_file(new_metadata)
                 continue
-            if old_metadata is None:
-                send_metadata_change_to_discord(cm_id, None, new_metadata["items_available"])
-                save_metadata_to_file(new_metadata)
-                continue
-            old_availabe, new_available = compare_metadata(old_metadata, new_metadata)
-            if old_availabe is None and new_available is None:
+            return_one, return_two, what_changed = compare_metadata(old_metadata, new_metadata)
+            if what_changed is None:
                 continue
             cms_nfts = get_cms_nft(cm_id, version)
             nft_name = "not found"
@@ -115,7 +140,7 @@ def main():
                 image, description = get_data_of_uri(nft_uri)
             else:
                 image, description = None, None
-            send_metadata_change_to_discord(cm_id, old_availabe, new_available, nft_name, image)
+            send_metadata_change_to_discord(cm_id, return_one, return_two, nft_name, image, what_changed)
             save_metadata_to_file(new_metadata)
         time.sleep(60)
 

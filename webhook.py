@@ -7,13 +7,13 @@ def send_discord_webhook(metadata, nft_name, image, description):
     cm_timestamp = metadata.get("go_live_date", None)
 
     _gatekeeper_on_of = metadata["gatekeeper"]
-    if _gatekeeper_on_of["gatekeeper_network"] == None:
+    if _gatekeeper_on_of["gatekeeper_network"] is None:
         gatekeeper_on_of = "off"
     else:
         gatekeeper_on_of = "on"
 
     _whitelist = metadata["whitelist"]
-    if _whitelist["mint"] == None:
+    if _whitelist["mint"] is None:
         whitelist = "on"
     else:
         whitelist = "off"
