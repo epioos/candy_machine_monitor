@@ -524,6 +524,9 @@ class MagicEden:
                 continue
             old_collection_data = self.file_handler.get_collection_interval_from_file(slug)
 
+            results = collection_data.get("results", None)
+            if results is None:
+                continue
             collection_data = collection_data["results"]
             if old_collection_data is None:
                 print("new collection found", slug)
