@@ -447,7 +447,6 @@ class MagicEden:
             )
         elif old_collection_data["floorPrice"] != collection_data["floorPrice"]:
             print("collection changed", slug)
-            self.file_handler.save_collection_data_to_file(slug, collection_data)
             floor_price = float(collection_data["floorPrice"] / 1000000000).__round__(2)
             listedCount = collection_data["listedCount"]
             avgPrice24hr = float(collection_data["avgPrice24hr"] / 1000000000).__round__(2) \
@@ -461,6 +460,12 @@ class MagicEden:
                 if old_collection_data.get("avgPrice24hr", None) is not None else 1
             old_volume24hr = float(old_collection_data["volume24hr"] / 1000000000).__round__(2) \
                 if old_collection_data.get("volume24hr", None) is not None else 1
+
+            floor_price_changed_less_than_10_percent = (floor_price - old_floor_price) / old_floor_price < 0.1
+            if floor_price_changed_less_than_10_percent is True:
+                return
+            # only post and save if floor price changed more than 10%
+            self.file_handler.save_collection_data_to_file(slug, collection_data)
 
             floor_change_positive = "+" if floor_price > old_floor_price else ""
             floor_change_in_percentage = float((floor_price - old_floor_price) / old_floor_price * 100).__round__(2)
@@ -792,7 +797,7 @@ class MagicEden:
                     url=f"https://magiceden.io/item-details/{line['mintAddress']}",
                     author="ME Special Item found",
                     image=line.get("img", None),
-                    target_webhook=self.launchpad_collections_webhook_url,
+                    target_webhook=self.collection_monitor_webhook_url,
                     fields={
                         "Rank": displayed_rank,
                         "Price": f'{str(line["price"])} SOL',
