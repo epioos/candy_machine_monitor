@@ -5,8 +5,7 @@ import random
 import time
 
 import csv
-import cloudscraper
-import helheim
+#import helheim
 import requests
 from discord import Embed
 
