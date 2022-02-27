@@ -414,8 +414,11 @@ class MagicEden:
             self.rotate_proxy()
             return
         old_collection_data = self.file_handler.get_collection_data_from_file(slug)
-
-        collection_data = collection_data["results"]
+        results = collection_data.get("results", None)
+        if results is None:
+            print("results failed", slug)
+            return
+        collection_data = results
         collection_data["lastChange"] = int(time.time())
         if old_collection_data is None:
             print("new collection found", slug)
