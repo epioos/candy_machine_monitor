@@ -5,7 +5,7 @@ import random
 import time
 
 import csv
-#import helheim
+# import helheim
 import requests
 from discord import Embed
 

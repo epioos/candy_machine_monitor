@@ -1,7 +1,7 @@
 import datetime
 import time
 
-#import helheim
+# import helheim
 
 from ME.magiceden import MagicEden
 from magicden_filehandler import MagicEdenFileHandler
@@ -11,8 +11,8 @@ def main():
     me_monitor = MagicEden()
     me_fh = MagicEdenFileHandler()
     last_run_timestamp_interval_monitor = datetime.datetime.now() - datetime.timedelta(hours=1)
-    print("time00: ",type((last_run_timestamp_interval_monitor + datetime.timedelta(minutes=15)).timestamp()))
-    print("time15: ",type((datetime.datetime.now()).timestamp()))
+    # print("time00: ",type((last_run_timestamp_interval_monitor + datetime.timedelta(minutes=15)).timestamp()))
+    # print("time15: ",type((datetime.datetime.now()).timestamp()))
     while 1:
         me_monitor.check_launchpad_releases()
         me_monitor.check_launchpad_collections()
@@ -38,5 +38,5 @@ def main():
 
 
 if __name__ == "__main__":
-    #helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
+    # helheim.auth('3aa9eba5-40f0-4e7e-836e-82661398430f')
     main()
