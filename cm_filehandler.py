@@ -33,3 +33,8 @@ class CmFileHandler:
             data.remove(slug)
             with open(self.file_path, "w") as f:
                 f.write(json.dumps({"list": data}, indent=4))
+
+    def remove_all_from_list(self):
+        data = []
+        with open(self.file_path, "w") as f:
+            f.write(json.dumps({"list": data}, indent=4))

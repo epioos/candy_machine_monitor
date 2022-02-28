@@ -15,6 +15,7 @@ from cm_get_info_on_command import send_cm_information
 from eth_stuff.api import Backend
 from magicden_filehandler import MagicEdenFileHandler
 from opensea_filehandler import OpenSeaFileHandler
+from nifty_filehandler import NiftyFileHandler
 from settings import discord_bot_token
 
 # intents = discord.Intents.default()
@@ -62,6 +63,11 @@ def get_help_help_embed():
     help_embed.add_field(
         name='!os',
         value='Shows all commands for managing open sea Monitor',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!nifty',
+        value='Shows all commands for Nifty Gateway Monitor',
         inline=False
     )
     help_embed.add_field(
@@ -199,6 +205,11 @@ def get_cm_help_embed():
         value='Help overview',
         inline=False
     )
+    help_embed.add_field(
+        name='!cm remove_all',
+        value='Help overview',
+        inline=False
+    )
     help_embed.set_footer(
         text='Candy machine Monitor'
     )
@@ -236,6 +247,37 @@ def get_opensea_help_embed():
     )
     return help_embed
 
+
+def get_nifty_help_embed():
+    help_embed = discord.Embed(
+        title='Nifty Gateway Monitor',
+        description='Manage Nifty Gateway Monitor',
+        color=0x00ff00
+    )
+    help_embed.add_field(
+        name='!nifty add',
+        value='Add a Collection ID to Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!nifty remove',
+        value='Remove a Collection ID from Monitor List',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!nifty list',
+        value='List Collections ID\'s that are being monitored',
+        inline=False
+    )
+    help_embed.add_field(
+        name='!nifty help',
+        value='Help overview',
+        inline=False
+    )
+    help_embed.set_footer(
+        text='Nifty Gateway Monitor'
+    )
+    return help_embed
 
 async def await_message(ctx):
     def check_choice(m):
@@ -311,7 +353,7 @@ async def binance_manage_monitor_command(ctx, *args):
                 return await ctx.send("No collections are being monitored.")
             await ctx.send('\n'.join(list_of_all_collections))
         else:
-            return await ctx.send(embed=get_magiceden_help_embed())
+            return await ctx.send(embed=get_binance_help_embed())
     elif len(args) == 2:
         if args[0] == 'add':
             answer = args[1]
@@ -353,6 +395,9 @@ async def cm_manage_monitor_command(ctx, *args):
             if len(list_of_all_collections) == 0:
                 return await ctx.send("No collections are being monitored.")
             await ctx.send('\n'.join(list_of_all_collections))
+        elif args[0] == 'remove_all':
+            cm_fh.remove_all_from_list()
+            await ctx.send("All CM Id's removed from list")
         else:
             return await ctx.send(embed=get_cm_help_embed())
     elif len(args) == 2:
@@ -419,6 +464,48 @@ async def opensea_manage_monitor_command(ctx, *args):
             return await ctx.send(embed=get_opensea_help_embed())
     else:
         return await ctx.send(embed=get_opensea_help_embed())
+
+@client.command(
+    name='nifty',
+    description='Manage Nifty Gateway Monitor',
+    brief='Manage Nifty Gateway Monitor',
+    aliases=[],
+    pass_context=True
+)
+@commands.has_any_role(*staff_roles)
+async def nifty_manage_monitor_command(ctx, *args):
+    nifty_fh = NiftyFileHandler()
+    if len(args) == 0:
+        return await ctx.send(embed=get_nifty_help_embed())
+    elif len(args) == 1:
+        if args[0] == 'list':
+            list_of_all_collections = nifty_fh.read_file()
+            if len(list_of_all_collections) == 0:
+                return await ctx.send("No collections are being monitored.")
+            await ctx.send('\n'.join(list_of_all_collections))
+        else:
+            return await ctx.send(embed=get_nifty_help_embed())
+    elif len(args) == 2:
+        if args[0] == 'add':
+            answer = args[1]
+            if answer is not None:
+                nifty_collection_url = answer.strip()
+                nifty_fh.add_to_list(nifty_collection_url)
+                await ctx.send(f"Added {answer} to the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        elif args[0] == 'remove':
+            answer = args[1]
+            if answer is not None:
+                nifty_collection_url = answer.strip()
+                nifty_fh.remove_from_list(nifty_collection_url)
+                await ctx.send(f"Removed {answer} from the monitor list.")
+            else:
+                await ctx.send("No answer received. Cancelling.")
+        else:
+            return await ctx.send(embed=get_nifty_help_embed())
+    else:
+        return await ctx.send(embed=get_nifty_help_embed())
 
 
 @client.command(

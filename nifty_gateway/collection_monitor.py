@@ -3,32 +3,12 @@ import os
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import requests
 
-class NiftyFileHandler:
-    def __init__(self):
-        self.file_path = os.path.dirname(os.path.realpath(__file__))
-        self.collection_folder_path = os.path.join(self.file_path, "collection")
-        self.create_folders()
-
-    def create_folders(self):
-        if not os.path.exists(self.collection_folder_path):
-            os.makedirs(self.collection_folder_path)
-
-    def save_collection_to_file(self, collection_id, release_data):
-        release_file_path = os.path.join(self.collection_folder_path, collection_id + ".json")
-        with open(release_file_path, "w") as collection_file:
-            collection_file.write(json.dumps(release_data, indent=4))
-
-    def get_collection_from_file(self, collection_id):
-        collection_file_path = os.path.join(self.collection_folder_path, collection_id + ".json")
-        if not os.path.isfile(collection_file_path):
-            return None
-        with open(collection_file_path, "r") as collection_file:
-            return json.loads(collection_file.read())
+from nifty_filehandler import NiftyFileHandler
 
 
 class NiftyCollection:
-    def __init__(self):
-        self.contract_address = "0xdb8f52d04f9156dd2167d2503a5a2ceef3125b09"
+    def __init__(self, contract_address):
+        self.contract_address = contract_address
         self.logo_url_mm = "https://cdn.discordapp.com/attachments/907443660717719612/928263386603589682/Q0bOuU6.png"
         self.logo_url_ng = "https://i.imgur.com/RKT8t7K.png"
 
@@ -58,13 +38,10 @@ class NiftyCollection:
         new_data = self.get_info_on_request()
         if old_data is None:
             self.filehandler.save_collection_to_file(self.contract_address, new_data)
-            print("bin hier")
             self.send_webhook(new_data,name, picture, listings_type)
-            print("bin da")
         elif old_data["floor_price_in_cents"] != new_data["floor_price_in_cents"]:
-            #todo send webhook
+            self.send_webhook(new_data,name, picture, listings_type)
             self.filehandler.save_collection_to_file(self.contract_address, new_data)
-        #todo more compare stuff
 
     def get_picture_name_listingstype(self):
         import requests
@@ -116,10 +93,13 @@ class NiftyCollection:
         webhook.execute()
 
 def main():
-    nc = NiftyCollection()
-    nc.get_info_on_request()
-    name, picture, listings_type = nc.get_picture_name_listingstype()
-    nc.compare_changes(name, picture, listings_type)
+    nifty_fh = NiftyFileHandler()
+    collection_list = nifty_fh.read_file()
+    for collection in collection_list:
+        nc = NiftyCollection(collection)
+        nc.get_info_on_request()
+        name, picture, listings_type = nc.get_picture_name_listingstype()
+        nc.compare_changes(name, picture, listings_type)
 
 
 if __name__ == '__main__':
